@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/chatlist_bg"
+    android:layout_marginVertical="1dp"
+    android:paddingVertical="5dp">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/request_dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:padding="2dp"
+        android:src="@drawable/dp1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/requestname_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/bold_text"
+        android:text="Person Name"
+        android:textColor="@color/medium_black"
+        android:textSize="20sp"
+        app:layout_constraintStart_toEndOf="@+id/request_dp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/requestcontact_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="7dp"
+        android:fontFamily="@font/normal_text"
+        android:text="0 Mutual friends"
+        android:textAlignment="viewStart"
+        android:textColor="@color/medium_black"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@+id/requestname_text"
+        app:layout_constraintTop_toBottomOf="@+id/requestname_text" />
+
+    <ImageView
+        android:id="@+id/accept_bt"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginEnd="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/ripple_bg"
+        app:layout_constraintBottom_toBottomOf="@+id/decline_bt"
+        app:layout_constraintEnd_toStartOf="@+id/decline_bt"
+        app:layout_constraintTop_toTopOf="@+id/decline_bt"
+        app:srcCompat="@drawable/accept" />
+
+    <ImageView
+        android:id="@+id/decline_bt"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/ripple_bg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/decline" />
+</androidx.constraintlayout.widget.ConstraintLayout>

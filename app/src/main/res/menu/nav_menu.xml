@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/chat_menu"
+        android:icon="@drawable/messanger_selector"
+        android:title="Chats" />
+    <item
+        android:id="@+id/story_menu"
+        android:icon="@drawable/post_selector"
+        android:title="Stories" />
+    <item
+        android:id="@+id/safety_menu"
+        android:icon="@drawable/shield_selector"
+        android:title="Safety" />
+    <item
+        android:id="@+id/announcement_menu"
+        android:icon="@drawable/siren_selector"
+        android:title="Reports" />
+</menu>

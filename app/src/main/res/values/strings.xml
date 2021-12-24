@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">SafePak</string>
+
+    <string-array name="blood_groups">
+        <item>A+</item>
+        <item>B+</item>
+        <item>AB+</item>
+        <item>O+</item>
+        <item>A-</item>
+        <item>B-</item>
+        <item>AB-</item>
+        <item>O-</item>
+    </string-array>
+
+    <string-array name="genders">
+    <item>Male</item>
+    <item>Female</item>
+    <item>Other</item>
+    </string-array>
+    <!-- Preference Titles -->
+    <string name="general_header">General</string>
+    <string name="level2_header">Level-2</string>
+
+    <!-- Messages Preferences -->
+    <string name="sim_settings">Send location through sim</string>
+
+    <!-- Sync Preferences -->
+    <string name="video_settings">Record video</string>
+    <string name="face_settings">AI face extract</string>
+    <string name="map_settings">Search for nearby people</string>
+    <!-- Strings used for fragments for navigation -->
+
+</resources>

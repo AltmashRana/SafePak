@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory app:title="@string/general_header">
+
+        <SwitchPreferenceCompat
+            app:key="sync"
+            app:title="@string/sim_settings"
+            app:summary="Send current location through sim"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/level2_header">
+
+        <SwitchPreferenceCompat
+            app:key="sync"
+            app:title="@string/video_settings"
+            app:summary="Record spy video on level-2 call"/>
+
+        <SwitchPreferenceCompat app:title="@string/face_settings"
+            app:summary="Extract faces from video"/>
+        <SwitchPreferenceCompat app:title="@string/map_settings"
+            app:summary="Look for nearby people in range for help"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
