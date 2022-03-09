@@ -9,6 +9,8 @@ import com.example.safepak.data.User
 import com.example.safepak.databinding.ActivityVerifyBinding
 import com.example.safepak.frontend.home.HomeActivity
 import com.example.safepak.frontend.login.LoginActivity
+import com.example.safepak.frontend.services.FirebaseInstanceService
+import com.example.safepak.frontend.services.FirebaseMessagingService
 import com.google.firebase.FirebaseException
 import java.util.concurrent.TimeUnit
 import com.google.firebase.auth.ktx.auth
@@ -19,13 +21,14 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.messaging.FirebaseMessaging
 
 
 class VerifyActivity : AppCompatActivity() {
     private lateinit var binding: ActivityVerifyBinding
     private lateinit var auth: FirebaseAuth
     private lateinit var db : FirebaseFirestore
-    private lateinit var codeBySystem: String
+    private var codeBySystem: String = ""
 
     private lateinit var fullname : String
     private lateinit var phone : String
@@ -33,7 +36,6 @@ class VerifyActivity : AppCompatActivity() {
     private lateinit var cnic : String
     private lateinit var login_phone : String
     private lateinit var flag : String
-    private lateinit var methods : ILoginAndRegister
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,7 +46,6 @@ class VerifyActivity : AppCompatActivity() {
 
         auth = Firebase.auth
         db = FirebaseFirestore.getInstance()
-        methods = LoginAndRegisterImplementation()
 
         flag = intent.getStringExtra("flag").toString()
 
@@ -111,19 +112,33 @@ class VerifyActivity : AppCompatActivity() {
         binding.proceedBt.isEnabled = false
         binding.verifyBar.visibility = View.VISIBLE
         //Verification
+
         val credential = PhoneAuthProvider.getCredential(codeBySystem, code)
 
         //Sign-in and creation
         val firebaseAuth = FirebaseAuth.getInstance()
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener(this){ task ->
             if (task.isSuccessful) {
-                if(flag.equals("login")){
+                if(flag == "login"){
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener {
+                        if(it.isComplete){
+                            val token = it.result.toString()
+                            FirebaseInstanceService.addTokenToFirestore(token)
+                        }
+                    }
+
                     Toast.makeText(this@VerifyActivity, "Logged in", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this@VerifyActivity, HomeActivity::class.java)
                     startActivity(intent)
                     finish()
                 }
                 else{
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener {
+                        if(it.isComplete){
+                            val token = it.result.toString()
+                            FirebaseInstanceService.addTokenToFirestore(token)
+                        }
+                    }
                     signup(task)
                 }
             }
@@ -144,13 +159,15 @@ class VerifyActivity : AppCompatActivity() {
 //        if (creationTimestamp == lastSignInTimestamp) {
             val names = fullname.split(" ")
             val adduser = User(user.uid, names[0], names[1], password, cnic, phone,null,null,null,null,null)
-            db.collection("users").document(user.uid).set(adduser).addOnSuccessListener {
+
+        db.collection("users").document(user.uid).set(adduser).addOnSuccessListener {
                 Toast.makeText(this@VerifyActivity, "Logged in", Toast.LENGTH_SHORT).show()
+
                 val intent = Intent(this@VerifyActivity, HomeActivity::class.java)
                 startActivity(intent)
                 finish()
             }.addOnFailureListener {
-                Toast.makeText(this@VerifyActivity, "Registeration Failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@VerifyActivity, "Registration Failed", Toast.LENGTH_SHORT).show()
                 binding.proceedBt.isEnabled = true
                 binding.verifyBar.visibility = View.GONE
         }

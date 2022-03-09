@@ -1,6 +1,5 @@
 package com.example.safepak.frontend.chat
 
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -10,47 +9,31 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.safepak.frontend.chatAdapters.RequestlistAdapter
-import com.example.safepak.frontend.chatAdapters.SearchAdapter
 import com.example.safepak.data.User
 import com.example.safepak.databinding.ActivityAddFriendBinding
-import com.example.safepak.frontend.home.HomeActivity
-import com.example.safepak.frontend.login.LoginActivity
+import com.example.safepak.frontend.chatAdapters.*
 import com.example.safepak.logic.models.Friendship
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter
-import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.EventListener
-import org.jetbrains.anko.toast
 import java.util.*
 import kotlin.collections.ArrayList
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Task
 
 import com.google.android.gms.tasks.Tasks
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.QueryDocumentSnapshot
-
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.QuerySnapshot
-
-
-
-
-
-
+import com.google.firebase.ktx.Firebase
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
 
 class AddFriendActivity : AppCompatActivity() {
     lateinit var binding: ActivityAddFriendBinding
-    lateinit var db : FirebaseFirestore
+    lateinit var db: FirebaseFirestore
     lateinit var searches: ArrayList<Pair<User, Int>>
     lateinit var requests: ArrayList<User>
     lateinit var requestsIds: ArrayList<String>
-    lateinit var searchRecyclerView: RecyclerView
-    lateinit var requestRecyclerView: RecyclerView
-    lateinit var requestAdapter: RequestlistAdapter
-    lateinit var searchAdapter : SearchAdapter
+
+    private var requestAdapter = GroupAdapter<GroupieViewHolder>()
+    private var searchAdapter = GroupAdapter<GroupieViewHolder>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,27 +52,20 @@ class AddFriendActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         requests = ArrayList()
         requestsIds = ArrayList()
-
         searches = ArrayList()
 
-        searchRecyclerView = binding.searchRecycler
-        searchAdapter = SearchAdapter(searches, FirebaseSession.userID)
-        searchRecyclerView.adapter = searchAdapter
-        searchRecyclerView.layoutManager = LinearLayoutManager(applicationContext)
 
-        requestRecyclerView = binding.requestsRecycler
-        requestAdapter = FirebaseSession.userID?.let {
-            RequestlistAdapter(requests,
-                it, requestsIds)
-        }!!
-        requestRecyclerView.adapter = requestAdapter
-        requestRecyclerView.layoutManager = LinearLayoutManager(view.context)
+        binding.emptysearchText.visibility = View.VISIBLE
+
+        binding.emptyrequestText.visibility = View.VISIBLE
 
         loadRequests()
+
         loadSuggesstions()
 
         binding.searchLayout.editText?.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                binding.emptysearchText.visibility = View.VISIBLE
                 loadSearches()
                 binding.searchLayout.isEnabled = false
                 binding.searchRecycler.visibility = View.GONE
@@ -100,281 +76,144 @@ class AddFriendActivity : AppCompatActivity() {
                     binding.searchLayout.isEnabled = true
                     binding.searchRecycler.visibility = View.VISIBLE
                     binding.searchBar.visibility = View.GONE
-                },  1000)
+                }, 1000)
                 true
             }
             false
         }
 
-
-        binding.refreshrequestsBt.setOnClickListener{
+        binding.refreshrequestsSwipe.setOnRefreshListener {
             loadSuggesstions()
             loadRequests()
-            binding.refreshrequestsBt.isEnabled = false
-            binding.refreshrequestsBt.visibility = View.GONE
-            binding.requestBar.visibility = View.VISIBLE
-
-            Handler(Looper.getMainLooper()).postDelayed({
-
-                binding.refreshrequestsBt.isEnabled = true
-                binding.refreshrequestsBt.visibility = View.VISIBLE
-                binding.requestBar.visibility = View.GONE
-            },  3000)
         }
     }
 
 
-    fun loadSuggesstions(){
-        searches.clear()
-        val query = db.collection("users").limit(10).
-        addSnapshotListener (object : EventListener<QuerySnapshot>{
-            override fun onEvent(
-                value: QuerySnapshot?,
-                error: FirebaseFirestoreException?
-            ) {
-                if (error != null) {
-                    Log.e("Firestore Error ", error.message.toString())
-                    return
-                }
-                for (doc: DocumentChange in value?.documentChanges!!) {
-                    if(doc.type == DocumentChange.Type.ADDED) {
-                        val user = doc.document.toObject(User::class.java)
-                        if (user?.userid != FirebaseSession.userID) {
-                            var flag = 0
-                            val query1 = db.collection("requests")
-                                .whereEqualTo("userid", FirebaseSession.userID)
-                                .whereEqualTo("friendid", user?.userid)
-                                .whereIn("status", Arrays.asList("pending", "added"))
+    fun loadSuggesstions() {
+        searchAdapter.clear()
+        val query = db.collection("users")
+            .addSnapshotListener(object : EventListener<QuerySnapshot> {
+                override fun onEvent(
+                    value: QuerySnapshot?,
+                    error: FirebaseFirestoreException?
+                ) {
+                    if (error != null) {
+                        Log.e("Firestore Error ", error.message.toString())
+                        return
+                    }
+                    for (doc: DocumentChange in value?.documentChanges!!) {
+                        if (doc.type == DocumentChange.Type.ADDED) {
+                            val user = doc.document.toObject(User::class.java)
+                            if (user.userid != FirebaseSession.userID) {
+                                binding.emptysearchText.visibility = View.GONE
 
-                            val query2 = db.collection("requests")
-                                .whereEqualTo("userid", user?.userid)
-                                .whereEqualTo("friendid", FirebaseSession.userID)
-                                .whereIn("status", Arrays.asList("pending", "added"))
+                                var flag = 0
 
-                            Tasks.whenAllSuccess<Any>(query1.get(Source.SERVER), query2.get(Source.SERVER))
-                                .addOnSuccessListener { objects ->
-                                     for (obj in objects) {
-                                        val queryDocumentSnapshots = obj as QuerySnapshot
-                                        for (documentSnapshot in queryDocumentSnapshots) {
-//                                            val friendship = documentSnapshot.toObject(Friendship::class.java)
-                                            flag = 1
-                                            searches.add(Pair(user!!, 0))
+                                FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}/${user.userid}")
+                                    .get().addOnSuccessListener { friends ->
+                                        if (friends.children.count() == 0) {
+
+                                            FirebaseDatabase.getInstance().getReference("/friend-requests/${user.userid}/${FirebaseSession.userID}")
+                                                .get().addOnSuccessListener { doc ->
+                                                    if (doc.children.count() > 0) {
+                                                        flag = 1
+                                                        searchAdapter.add(SearchlistItem(user, flag))
+                                                    } else {
+                                                        searchAdapter.add(SearchlistItem(user, flag))
+                                                    }
+                                                }
+                                        } else {
+                                            flag = 2
+                                            searchAdapter.add(SearchlistItem(user, flag))
                                         }
                                     }
-                                    if(flag != 1) {
-                                        searches.add(Pair(user!!, 1))
-                                    }
-
-                                    if(searches.size == 0)
-                                        binding.emptysearchText.visibility = View.VISIBLE
-                                    else
-                                        binding.emptysearchText.visibility = View.GONE
-                                    searchAdapter.notifyDataSetChanged()
-                                }
+                            }
                         }
                     }
+                    binding.refreshrequestsSwipe.isRefreshing = false
                 }
-            }
-        })
+            })
+        binding.searchRecycler.adapter = searchAdapter
     }
 
-    fun loadSearches(){
-        searches.clear()
-        val query = db.collection("users").
-        whereEqualTo("firstname", binding.searchLayout.editText?.text.toString())
-            .addSnapshotListener (object : EventListener<QuerySnapshot>{
-            override fun onEvent(
-                value: QuerySnapshot?,
-                error: FirebaseFirestoreException?
-            ) {
-                if (error != null) {
-                    Log.e("Firestore Error ", error.message.toString())
-                    return
-                }
-                for (doc: DocumentChange in value?.documentChanges!!) {
-                    if(doc.type == DocumentChange.Type.ADDED) {
-                        val user = doc.document.toObject(User::class.java)
-                        if (user.userid != FirebaseSession.userID) {
-                            var flag = 0
-                            val query1 = db.collection("requests")
-                                .whereEqualTo("userid", FirebaseSession.userID)
-                                .whereEqualTo("friendid", user.userid)
-                                .whereIn("status", Arrays.asList("pending", "added"))
+    fun loadSearches() {
+        searchAdapter.clear()
+        val query = db.collection("users").whereEqualTo("firstname", binding.searchLayout.editText?.text.toString())
+            .addSnapshotListener(object : EventListener<QuerySnapshot> {
+                override fun onEvent(
+                    value: QuerySnapshot?,
+                    error: FirebaseFirestoreException?
+                ) {
+                    if (error != null) {
+                        Log.e("Firestore Error ", error.message.toString())
+                        return
+                    }
+                    for (doc: DocumentChange in value?.documentChanges!!) {
+                        if (doc.type == DocumentChange.Type.ADDED) {
+                            val user = doc.document.toObject(User::class.java)
+                            if (user.userid != FirebaseSession.userID) {
+                                binding.emptysearchText.visibility = View.GONE
 
-                            val query2 = db.collection("requests")
-                                .whereEqualTo("userid", user.userid)
-                                .whereEqualTo("friendid", FirebaseSession.userID)
-                                .whereIn("status", Arrays.asList("pending", "added"))
+                                var flag = 0
 
-                            Tasks.whenAllSuccess<Any>(query1.get(), query2.get())
-                                .addOnSuccessListener { objects ->
-                                    for (obj in objects) {
-                                        val queryDocumentSnapshots = obj as QuerySnapshot
-                                        for (documentSnapshot in queryDocumentSnapshots) {
-//                                            val friendship = documentSnapshot.toObject(Friendship::class.java)
-                                            flag = 1
-                                            searches.add(Pair(user, 0))
+                                FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}/${user.userid}")
+                                    .get().addOnSuccessListener { friends ->
+                                        if (friends.children.count() == 0) {
+
+                                            FirebaseDatabase.getInstance().getReference("/friend-requests/${user.userid}/${FirebaseSession.userID}")
+                                                .get().addOnSuccessListener { doc ->
+                                                    if (doc.children.count() > 0) {
+                                                        flag = 1
+                                                        searchAdapter.add(SearchlistItem(user, flag))
+                                                    } else {
+                                                        searchAdapter.add(SearchlistItem(user, flag))
+                                                    }
+                                                }
+                                        } else {
+                                            flag = 2
+                                            searchAdapter.add(SearchlistItem(user, flag))
                                         }
                                     }
-                                    if(flag != 1) {
-                                        searches.add(Pair(user, 1))
-                                    }
-                                    if(searches.size == 0)
-                                        binding.emptysearchText.visibility = View.VISIBLE
-                                    else
-                                        binding.emptysearchText.visibility = View.GONE
-                                    searchAdapter.notifyDataSetChanged()
+                            }
+                        }
+                    }
+                    binding.refreshrequestsSwipe.isRefreshing = false
+                }
+            })
+        binding.searchRecycler.adapter = searchAdapter
+    }
+
+
+    fun loadRequests() {
+        requestAdapter.clear()
+        val requestQuery =
+            FirebaseDatabase.getInstance().getReference("/friend-requests/${FirebaseSession.userID!!}")
+                .get().addOnSuccessListener { docs ->
+                    docs.children.forEach{
+                        val friendship = it.getValue(Friendship::class.java)
+
+                        db.collection("users").whereEqualTo("userid", friendship?.userid!!)
+                            .get().addOnSuccessListener { docs ->
+                                for (user in docs) {
+                                    val requestuser = user.toObject(User::class.java)
+
+                                    requestAdapter.add(
+                                        RequestlistItem(requestuser, friendship, requestAdapter)
+                                    )
+
+                                    binding.emptyrequestText.visibility = View.GONE
                                 }
-                        }
+                                binding.requestsCount.text = requestAdapter.groupCount.toString()
+                            }
                     }
-                }
-            }
-        })
-    }
-    override fun onResume() {
-        super.onResume()
-
-//        if(searches.size == 0)
-//            binding.emptysearchText.visibility = View.VISIBLE
-//        else
-//            binding.emptysearchText.visibility = View.GONE
 
 
-//        loadRequests()
-
-//        loadSuggestions()
-    }
-
-//    fun loadSearches(){
-//        searches.clear()
-//        requestsStatus.clear()
-//        val query = db.collection("users").whereEqualTo("firstname",
-//            binding.searchLayout.editText!!.text.toString())
-//        query.get().addOnSuccessListener { collection ->
-//            for(item in collection) {
-//                val user = item.toObject(User::class.java)
-//                user.password = null
-//                if (user.userid != FirebaseSession.userID) {
-//                    val innerquery = db.collection("requests")
-//                        .whereEqualTo("userid", FirebaseSession.userID)
-//                        .whereEqualTo("friendid", user.userid)
-//                        .whereIn("status", Arrays.asList("pending", "added"))
-//                    innerquery.get().addOnSuccessListener { friends ->
-//                        //Will run only once
-//                        if(friends.documents.size > 0){
-//                            requestsStatus.add(0)
-//                        }
-//                        else{
-//                            requestsStatus.add(1)
-//                        }
-//                        searches.add(user)
-//                    }.addOnFailureListener {
-//                        toast("Failed Search")
-//                    }
-//
-//
-//                    val query2 = db.collection("requests")
-//                        .whereEqualTo("userid", user.userid)
-//                        .whereEqualTo("friendid", FirebaseSession.userID)
-//                        .whereIn("status", Arrays.asList("pending", "added"))
-//                    query2.get().addOnSuccessListener { friends ->
-//                        //Will run only once
-//                        if (friends.documents.size > 0) {
-//                            requestsStatus.add(0)
-//                        } else {
-//                            requestsStatus.add(1)
-//                        }
-//                        searches.add(user)
-//                    }.addOnFailureListener {
-//                        toast("Failed Search")
-//                    }
-//                }
-//            }
-//            searchRecyclerView = binding.searchRecycler
-//            searchAdapter = SearchAdapter(searches, FirebaseSession.userID, requestsStatus)
-//            searchRecyclerView.adapter = searchAdapter
-//            searchRecyclerView.layoutManager = LinearLayoutManager(applicationContext)
-////            searchRecyclerView.adapter?.notifyDataSetChanged()
-//        }.addOnFailureListener {
-//            Toast.makeText(applicationContext, "Error fetching searches", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-
-//    fun loadSuggestions(){
-//        searches.clear()
-//        requestsStatus.clear()
-//        val query = db.collection("users").limit(10)
-//        query.get().addOnSuccessListener { collection ->
-//            for (item in collection) {
-//                val user = item.toObject(User::class.java)
-//                user.password = null
-//                if(user.userid != FirebaseSession.userID) {
-//                    val query1 = db.collection("requests")
-//                        .whereEqualTo("userid", FirebaseSession.userID)
-//                        .whereEqualTo("friendid", user.userid)
-//                        .whereIn("status", Arrays.asList("pending", "added"))
-//                    query1.get().addOnSuccessListener { friends ->
-//                        //Will run only once
-//                        if (friends.documents.size > 0) {
-//                            requestsStatus.add(0)
-//                        } else {
-//                            requestsStatus.add(1)
-//                        }
-//                        searches.add(user)
-//                    }.addOnFailureListener {
-//                        toast("Failed Search")
-//                    }
-//
-//
-//                    val query2 = db.collection("requests")
-//                        .whereEqualTo("userid", user.userid)
-//                        .whereEqualTo("friendid", FirebaseSession.userID)
-//                        .whereIn("status", Arrays.asList("pending", "added"))
-//                    query2.get().addOnSuccessListener { friends ->
-//                        //Will run only once
-//                        if (friends.documents.size > 0) {
-//                            requestsStatus.add(0)
-//                            searches.add(user)
-//                        }
-//
-//                    }.addOnFailureListener {
-//                        toast("Failed Search")
-//                    }
-//                }
-//            }
-//
-//
-//        }.addOnFailureListener {
-//            Toast.makeText(applicationContext, "Error fetching Data", Toast.LENGTH_SHORT).show()
-//        }
-//    }
-
-    fun loadRequests(){
-        requestsIds.clear()
-        requests.clear()
-        val requestQuery = db.collection("requests").whereEqualTo("friendid", FirebaseSession.userID).
-        whereEqualTo("status","pending")
-        requestQuery.get().addOnSuccessListener { collection ->
-            for (item in collection) {
-                val friendship = item.toObject(Friendship::class.java)
-                if (friendship.userid != FirebaseSession.userID) {
-                    val result = friendship.userid?.let { db.collection("users").whereEqualTo("userid",it) }
-                    result?.get()?.addOnSuccessListener { docs ->
-                        for (user in docs) {
-                            val requestuser = user.toObject(User::class.java)
-                            requests.add(requestuser)
-                            friendship.friendshipid?.let { requestsIds.add(it) }
-                        }
-                        requestRecyclerView.adapter?.notifyDataSetChanged()
-                    }
-                }
-            }
-        }.addOnFailureListener {
+                }.addOnFailureListener {
             Toast.makeText(applicationContext, "Error fetching requests", Toast.LENGTH_SHORT).show()
         }
+
+        binding.requestsRecycler.adapter = requestAdapter
     }
-
-
 
 
     override fun onSupportNavigateUp(): Boolean {

@@ -1,29 +1,30 @@
 package com.example.safepak.frontend.login
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.NetworkInfo
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.startActivity
 import com.example.safepak.R
 import com.example.safepak.frontend.home.HomeActivity
+import com.google.android.gms.ads.*
+import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.firebase.auth.FirebaseAuth
 
 class SplashActivity : AppCompatActivity() {
+    private var mInterstitialAd: InterstitialAd? = null
+    private val TAG = "RegisterActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
         Handler(Looper.getMainLooper()).postDelayed({
             if (!isNetworkAvailable())
                     internetPopup()
@@ -62,6 +63,7 @@ class SplashActivity : AppCompatActivity() {
         return false
     }
     fun internetPopup(){
+
         val builder = AlertDialog.Builder(this)
         builder.setMessage("Please connect to the internet!")
         builder.setCancelable(false)

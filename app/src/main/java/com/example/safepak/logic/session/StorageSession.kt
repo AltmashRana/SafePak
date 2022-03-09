@@ -3,7 +3,6 @@ package com.example.safepak.logic.session
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import java.util.*
 
 
 object StorageSession {
@@ -13,7 +12,7 @@ object StorageSession {
         get() = storageInstance.reference.child(FirebaseAuth.getInstance().currentUser?.uid ?: throw NullPointerException("UID is null."))
 
     fun uploadProfilePhoto(imageBytes: ByteArray, onSuccess: (imagePath: String) -> Unit) {
-        val ref = currentUserRef.child("profilePictures/${UUID.nameUUIDFromBytes(imageBytes)}")
+        val ref = currentUserRef.child("profilePictures/${FirebaseSession.userID}")
         ref.putBytes(imageBytes)
             .addOnSuccessListener {
                 onSuccess(ref.path)

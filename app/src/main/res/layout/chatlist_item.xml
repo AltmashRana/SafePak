@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/chatlist_bg"
-    android:foreground="?android:attr/selectableItemBackgroundBorderless"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackgroundBorderless">
 
 
     <TextView
@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:fontFamily="@font/normal_text"
-        android:text="10:30pm"
+        android:text="00:00"
         android:textAlignment="viewStart"
         android:textColor="@color/medium_black"
         android:textSize="12sp"
@@ -31,7 +31,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
-        android:src="@drawable/dp"
+        android:src="@drawable/empty_dp"
         app:civ_border_width="0.2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,39 +44,36 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="15dp"
         android:fontFamily="@font/bold_text"
-        android:text="Person Name"
+        android:text="Name"
         android:textColor="@color/medium_black"
         android:textSize="18sp"
         app:layout_constraintStart_toEndOf="@+id/chatlist_dp"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/chatlist_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="20dp"
-        android:fontFamily="@font/normal_text"
-        android:text="This is the last message!"
-        android:textAlignment="viewStart"
-        android:textColor="@color/medium_black"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/chatlistseen_img"
-        app:layout_constraintTop_toBottomOf="@+id/chatlistname_text"
-        app:layout_constraintVertical_bias="0.0" />
-
     <ImageView
         android:id="@+id/chatlistseen_img"
         android:layout_width="18dp"
         android:layout_height="18dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/chatlistname_text"
-        app:layout_constraintStart_toEndOf="@+id/chatlist_dp"
-        app:srcCompat="@drawable/delivered_ic" />
+        android:layout_marginStart="2dp"
+        app:layout_constraintBottom_toBottomOf="@+id/chatlist_text"
+        app:layout_constraintStart_toEndOf="@+id/chatlist_text"
+        app:layout_constraintTop_toTopOf="@+id/chatlist_text"
+        app:srcCompat="@drawable/empty" />
+
+    <TextView
+        android:id="@+id/chatlist_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/normal_text"
+        android:maxWidth="200dp"
+        android:maxLines="1"
+        android:text="............."
+        android:textAlignment="viewStart"
+        android:textColor="@color/medium_black"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@+id/chatlistname_text"
+        app:layout_constraintTop_toBottomOf="@+id/chatlistname_text" />
 
     <ImageView
         android:id="@+id/chatlistonlinestatus_img"
@@ -86,6 +83,6 @@
         android:layout_marginBottom="2dp"
         app:layout_constraintBottom_toBottomOf="@+id/chatlist_dp"
         app:layout_constraintEnd_toEndOf="@+id/chatlist_dp"
-        app:srcCompat="@drawable/online_ic" />
+        app:srcCompat="@drawable/empty" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,7 @@
 package com.example.safepak.data
 
 import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class User(
@@ -15,5 +15,7 @@ data class User(
     var img: String? = null,
     var gender: String? = null,
     var bloodgroup: String? = null,
-    var willingToDonate: Boolean? = null
+    var willingToDonate: Boolean? = null,
+    var status: HashMap<String,String> = HashMap(),
+    var registrationTokens: MutableList<String> = mutableListOf()
 ) : Parcelable

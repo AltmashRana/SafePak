@@ -1,52 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.safepak">
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <!--
+         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
+         Google Maps Android API v2, but you must specify either coarse or fine
+         location permissions for the "MyLocation" functionality.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
+        android:name=".frontend.home.SafePak"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SafePak">
+
+        <receiver
+            android:name=".frontend.gesture.EmergencyWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/emergency_widget_info" />
+        </receiver>
+        <!--
+             The API key for Google Maps-based APIs is defined as a string resource.
+             (See the file "res/values/google_maps_api.xml").
+             Note that the API key is linked to the encryption key used to sign the APK.
+             You need a different API key for each encryption key, including the release key that is used to
+             sign the APK for publishing.
+             You can define the keys for the debug and release targets in src/debug/ and src/release/.
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+        <!--
+             The API key for Google Maps-based APIs is defined as a string resource.
+             (See the file "res/values/google_maps_api.xml").
+             Note that the API key is linked to the encryption key used to sign the APK.
+             You need a different API key for each encryption key, including the release key that is used to
+             sign the APK for publishing.
+             You can define the keys for the debug and release targets in src/debug/ and src/release/.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default notification_icon"
+            android:resource="@drawable/logo_ic" />
+        <!--
+ Set color used with incoming notification messages. This is used when no color is set for the incoming
+        notification message. See README (https://goo.gl/6BKBK7) for more.
+        -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/white" />
+
+        <service
+            android:name=".frontend.services.FirebaseMessagingService"
+            android:exported="false"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            </intent-filter>
+        </service>
+        <service
+            android:name=".frontend.services.FirebaseInstanceService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".frontend.services.LocationService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
+
+        <service
+            android:name=".frontend.services.GestureService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"/>
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6026808248085271~4087503996" />
+
         <activity
-            android:name="com.example.safepak.frontend.other.ProfileActivity"
+            android:name=".frontend.blood.BloodResponseActivity"
             android:exported="true"
-            android:theme="@style/Theme.SafePakAppbar"
-            android:label="Profile" />
+            android:theme="@style/Theme.SafePakAppbar" />
         <activity
-            android:name="com.example.safepak.frontend.chat.ChatBoxActivity"
+            android:name=".frontend.blood.BloodBroadcastActivity"
+            android:exported="true"
+            android:label="Blood Request"
+            android:theme="@style/Theme.SafePakAppbar" />
+        <activity
+            android:name=".frontend.maps.DirectionsActivity"
+            android:exported="true"
+            android:label="@string/title_activity_directions"
+            android:theme="@style/Theme.SafePakAppbar" />
+        <activity
+            android:name=".frontend.chat.FriendsProfileActivity"
+            android:exported="true"
+            android:label="Profile"
+            android:theme="@style/Theme.SafePakAppbar" />
+        <activity
+            android:name=".frontend.other.ProfileActivity"
+            android:exported="true"
+            android:label="Profile"
+            android:theme="@style/Theme.SafePakAppbar" />
+        <activity
+            android:name=".frontend.chat.ChatBoxActivity"
             android:exported="true" />
         <activity
-            android:name="com.example.safepak.frontend.other.SettingsActivity"
+            android:name=".frontend.other.SettingsActivity"
             android:exported="true"
             android:label="Settings"
             android:theme="@style/Theme.SafePakAppbar" />
         <activity
-            android:name="com.example.safepak.frontend.chat.AddFriendActivity"
+            android:name=".frontend.maps.LocationActivity"
+            android:exported="true"
+            android:label="Location"
+            android:theme="@style/Theme.SafePakAppbar" />
+        <activity
+            android:name=".frontend.chat.AddFriendActivity"
             android:exported="true" />
         <activity
-            android:name="com.example.safepak.frontend.status.AddStatusActivity"
+            android:name=".frontend.status.AddStatusActivity"
             android:exported="true"
             android:label="Write status"
-            android:theme="@style/Theme.SafePakAppbar"/>
+            android:theme="@style/Theme.SafePakAppbar" />
         <activity
-            android:name="com.example.safepak.frontend.home.HomeActivity"
+            android:name=".frontend.home.HomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".frontend.register.VerifyActivity"
             android:exported="true" />
         <activity
-            android:name="com.example.safepak.frontend.register.VerifyActivity"
+            android:name=".frontend.login.ForgetActivity"
             android:exported="true" />
         <activity
-            android:name="com.example.safepak.frontend.login.ForgetActivity"
+            android:name=".frontend.register.RegisterActivity"
             android:exported="true" />
         <activity
-            android:name="com.example.safepak.frontend.register.RegisterActivity"
-            android:exported="true" />
-        <activity
-            android:name="com.example.safepak.frontend.login.SplashActivity"
+            android:name=".frontend.login.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,7 +169,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.safepak.frontend.login.LoginActivity"
+            android:name=".frontend.login.LoginActivity"
             android:exported="true" />
     </application>
 

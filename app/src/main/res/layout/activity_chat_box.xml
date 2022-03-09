@@ -27,7 +27,7 @@
                 android:id="@+id/chatbox_dp"
                 android:layout_width="42dp"
                 android:layout_height="42dp"
-                android:src="@drawable/dp"
+                android:src="@drawable/empty_dp"
                 app:civ_border_width="0.5dp"/>
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -51,8 +51,8 @@
                     android:id="@+id/chatboxperson_status"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="online"
-                    android:textColor="@color/teal_200"
+                    android:text=""
+                    android:textColor="@color/app_red"
                     android:textSize="12sp"
                     app:layout_constraintStart_toStartOf="@+id/chatboxname_text"
                     app:layout_constraintTop_toBottomOf="@+id/chatboxname_text" />
@@ -67,8 +67,9 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginBottom="16dp"
-        android:background="#F3F3F3"
+        android:background="@drawable/chatbackground"
         android:minHeight="80dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/chatbox_box"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -97,6 +98,7 @@
         android:fontFamily="@font/normal_text"
         android:gravity="start|center"
         android:hint="Message"
+        android:elevation="2dp"
         android:inputType="textMultiLine"
         android:paddingHorizontal="8dp"
         android:paddingVertical="5dp"
@@ -115,5 +117,16 @@
         app:srcCompat="@drawable/send_ic"
         android:clickable="true"
         android:focusable="true"/>
+
+    <ProgressBar
+        android:id="@+id/chatbox_bar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/chatbox_recyclerView"
+        app:layout_constraintEnd_toEndOf="@+id/chatbox_recyclerView"
+        app:layout_constraintStart_toStartOf="@+id/chatbox_recyclerView"
+        app:layout_constraintTop_toBottomOf="@+id/charBarLayout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

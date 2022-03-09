@@ -3,6 +3,8 @@ package com.example.safepak.frontend.statusAdapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -19,8 +21,11 @@ class MyStatusListAdapter(private val status_list: ArrayList<Status>) :
      * (custom ViewHolder).
      */
     lateinit var db : FirebaseFirestore
+    lateinit var animation : Animation
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+
+
         val content: TextView = view.findViewById(R.id.mycontent_text)
         val date: TextView = view.findViewById(R.id.mystatusdate_text)
         val delete: ImageView = view.findViewById(R.id.mystatusdelete_bt)
@@ -53,11 +58,17 @@ class MyStatusListAdapter(private val status_list: ArrayList<Status>) :
 
     // Replace the contents of a view (invoked by the layout manager)
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-
+        animation = AnimationUtils.loadAnimation(viewHolder.itemView.context, R.anim.slide_down)
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
         viewHolder.content.text = status_list[position].content
         viewHolder.date.text = status_list[position].date
+
+        viewHolder.content.startAnimation(animation)
+        viewHolder.date.startAnimation(animation)
+
+
+
     }
 
     // Return the size of your dataset (invoked by the layout manager)

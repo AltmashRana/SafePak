@@ -3,6 +3,8 @@ package com.example.safepak.frontend.statusAdapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -19,7 +21,7 @@ class StatusListAdapter(private val status_list: ArrayList<Pair<User, Status>>) 
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder).
      */
-
+    lateinit var animation : Animation
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val content: TextView = view.findViewById(R.id.content_text)
         val dp: ImageView = view.findViewById(R.id.status_dp)
@@ -45,7 +47,7 @@ class StatusListAdapter(private val status_list: ArrayList<Pair<User, Status>>) 
 
     // Replace the contents of a view (invoked by the layout manager)
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-
+        animation = AnimationUtils.loadAnimation(viewHolder.itemView.context, R.anim.lefttoright)
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
         viewHolder.name.text = status_list[position].first.firstname + " " + status_list[position].first.lastname
@@ -57,6 +59,11 @@ class StatusListAdapter(private val status_list: ArrayList<Pair<User, Status>>) 
 
         viewHolder.content.text = status_list[position].second.content
         viewHolder.date.text = status_list[position].second.date
+
+        viewHolder.content.startAnimation(animation)
+        viewHolder.date.startAnimation(animation)
+        viewHolder.dp.startAnimation(animation)
+        viewHolder.name.startAnimation(animation)
     }
 
     // Return the size of your dataset (invoked by the layout manager)

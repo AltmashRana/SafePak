@@ -6,6 +6,11 @@
             app:title="@string/sim_settings"
             app:summary="Send current location through sim"/>
 
+        <SwitchPreferenceCompat
+            app:key="gesture_switch"
+            app:title="@string/gesture_settings"
+            app:summary="Volume button gestures to call for help"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/level2_header">
@@ -19,7 +24,8 @@
             app:summary="Extract faces from video"/>
         <SwitchPreferenceCompat app:title="@string/map_settings"
             app:summary="Look for nearby people in range for help"/>
-
+        <SeekBarPreference
+            app:showSeekBarValue="true"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

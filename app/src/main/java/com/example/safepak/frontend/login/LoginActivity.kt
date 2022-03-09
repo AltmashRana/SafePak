@@ -5,19 +5,15 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import com.example.safepak.data.User
+import com.daimajia.androidanimations.library.Techniques
+import com.daimajia.androidanimations.library.YoYo
 import com.example.safepak.databinding.ActivityLoginBinding
-import com.example.safepak.frontend.home.HomeActivity
 import com.example.safepak.frontend.register.RegisterActivity
 import com.example.safepak.frontend.register.VerifyActivity
-import com.google.android.gms.tasks.Task
-import com.google.firebase.FirebaseException
 import com.google.firebase.auth.*
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import java.util.concurrent.TimeUnit
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -27,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
@@ -40,22 +37,36 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.loginBt.setOnClickListener{
+            val techniques = Techniques.Shake
+            val duration : Long = 400
+            var isValid = true
+
             val phone = binding.phoneText.editText?.text.toString()
             val password = binding.passwordText.editText?.text.toString()
             if(password.length < 8){
                 binding.passwordText.error = "Enter atleast 8-digit password"
+                isValid = false
+                YoYo.with(techniques)
+                    .duration(duration)
+                    .repeat(1)
+                    .playOn(binding.passwordText)
             } else{
                 binding.passwordText.error = null
                 binding.passwordText.isErrorEnabled = false
             }
             if(phone.length != 11){
                 binding.phoneText.error = "Enter a valid phone number"
-                return@setOnClickListener
+                isValid = false
+                YoYo.with(techniques)
+                    .duration(duration)
+                    .repeat(1)
+                    .playOn(binding.phoneText)
             } else{
                 binding.phoneText.error = null
                 binding.phoneText.isErrorEnabled = false
             }
-            signin()
+            if (isValid)
+                signin()
         }
 
         binding.forgetText.setOnClickListener{
@@ -67,10 +78,12 @@ class LoginActivity : AppCompatActivity() {
     private fun signin() {
         binding.loginBar.visibility = View.VISIBLE
         binding.loginBt.isEnabled = false
+
         val phone = binding.phoneText.editText?.text.toString()
         val password = binding.passwordText.editText?.text.toString()
+
         val query = db.collection("users").whereEqualTo("phone", phone)
-        query.get().addOnSuccessListener {doc ->
+        query.get().addOnSuccessListener { doc ->
             if(doc.documents.size > 0) {
                 val stored_password = doc.documents[0].data?.get("password")
                 if (stored_password == password) {

@@ -1,15 +1,29 @@
 package com.example.safepak.frontend.home
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Menu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 import com.example.safepak.databinding.ActivityHomeBinding
 import android.view.MenuItem
+import android.widget.Button
+import android.widget.Switch
+import android.widget.TextView
+import androidx.annotation.NonNull
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.app.ActivityCompat
+import androidx.core.location.LocationManagerCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.safepak.R
@@ -22,10 +36,15 @@ import com.example.safepak.frontend.other.ProfileActivity
 import com.example.safepak.frontend.other.SettingsActivity
 import com.example.safepak.frontend.safety.SafetyFragment
 import com.example.safepak.frontend.status.StatusFragment
+import com.example.safepak.logic.models.UserLocation
 import com.example.safepak.logic.session.StorageSession
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
+import android.view.animation.AnimationUtils
 
 
 class HomeActivity : AppCompatActivity() {
@@ -33,11 +52,17 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     lateinit var auth: FirebaseAuth
 
+    lateinit var chatsFragment: ChatsFragment
+    lateinit var statusFragment: StatusFragment
+    lateinit var safetyFragment: SafetyFragment
+    lateinit var announcementsFragment: AnnouncementsFragment
+
 
     override fun onResume() {
         super.onResume()
-        FirebaseSession.getCurrentUser { user ->
+        val animation = AnimationUtils.loadAnimation(this, R.anim.rotate)
 
+        FirebaseSession.getCurrentUser { user ->
             Glide.with(this)
                 .load(user.img?.let { StorageSession.pathToReference(it) })
                 .placeholder(R.drawable.empty_dp)
@@ -55,24 +80,31 @@ class HomeActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
 
+        chatsFragment = ChatsFragment()
+        statusFragment = StatusFragment()
+        safetyFragment = SafetyFragment()
+        announcementsFragment = AnnouncementsFragment()
+
         //set default fragment
-        loadFragment(ChatsFragment())
+        loadFragment(safetyFragment)
 
         binding.bottomNavigation.itemIconTintList = null
+
+        binding.bottomNavigation.selectedItemId = R.id.safety_menu
 
         binding.bottomNavigation.setOnItemSelectedListener {
             when(it.itemId){
                 R.id.chat_menu -> {
-                    loadFragment(ChatsFragment())
+                    loadFragment(chatsFragment)
                 }
                 R.id.story_menu -> {
-                    loadFragment(StatusFragment())
+                    loadFragment(statusFragment)
                 }
                 R.id.safety_menu -> {
-                    loadFragment(SafetyFragment())
+                    loadFragment(safetyFragment)
                 }
                 R.id.announcement_menu -> {
-                    loadFragment(AnnouncementsFragment())
+                    loadFragment(announcementsFragment)
                 }
             }
             return@setOnItemSelectedListener true
@@ -82,7 +114,6 @@ class HomeActivity : AppCompatActivity() {
             val intent = Intent(this@HomeActivity, ProfileActivity::class.java)
             startActivity(intent)
         }
-
 
 
 //        binding.homeFrame.setOnTouchListener(object : OnSwipeListener(view.context)
@@ -119,6 +150,7 @@ class HomeActivity : AppCompatActivity() {
             .replace(R.id.home_frame, fragment)
             .commit();
     }
+
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         (menu as MenuBuilder).setOptionalIconsVisible(true)
@@ -138,7 +170,9 @@ class HomeActivity : AppCompatActivity() {
             R.id.logout_menu -> {
                 Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
                 auth = Firebase.auth
+                FirebaseDatabase.getInstance().goOffline()
                 auth.signOut()
+                FirebaseDatabase.getInstance().goOnline()
                 val intent = Intent(this@HomeActivity, LoginActivity::class.java)
                 startActivity(intent)
                 finish()
@@ -154,4 +188,5 @@ class HomeActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+
 }

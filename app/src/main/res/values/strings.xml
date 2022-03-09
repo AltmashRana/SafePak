@@ -13,21 +13,29 @@
     </string-array>
 
     <string-array name="genders">
-    <item>Male</item>
-    <item>Female</item>
-    <item>Other</item>
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
     </string-array>
     <!-- Preference Titles -->
     <string name="general_header">General</string>
     <string name="level2_header">Level-2</string>
 
-    <!-- Messages Preferences -->
+    <!-- Preferences -->
     <string name="sim_settings">Send location through sim</string>
-
-    <!-- Sync Preferences -->
+    <string name="gesture_settings">Enable off-screen gestures</string>
     <string name="video_settings">Record video</string>
     <string name="face_settings">AI face extract</string>
     <string name="map_settings">Search for nearby people</string>
+
+
+
+    <string name="title_activity_directions">DirectionsActivity</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_blood_broadcast">BloodBroadcastActivity</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
     <!-- Strings used for fragments for navigation -->
 
 </resources>

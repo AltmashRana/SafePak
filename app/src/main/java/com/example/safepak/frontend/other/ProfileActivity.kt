@@ -7,13 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.view.animation.AnimationUtils
 import com.example.safepak.databinding.ActivityProfileBinding
 
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.safepak.R
 import com.example.safepak.logic.session.StorageSession
-import org.jetbrains.anko.toast
 import java.io.ByteArrayOutputStream
 
 
@@ -34,6 +34,7 @@ class ProfileActivity : AppCompatActivity() {
         supportActionBar?.setBackgroundDrawable(color);
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
+
 
         binding.dpeditBt.setOnClickListener {
             val intent = Intent().apply {
@@ -77,7 +78,7 @@ class ProfileActivity : AppCompatActivity() {
             val selectedImageBmp = MediaStore.Images.Media.getBitmap(this.contentResolver, selectedImagePath)
 
             val outputStream = ByteArrayOutputStream()
-            selectedImageBmp.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+            selectedImageBmp.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
             selectedImageBytes = outputStream.toByteArray()
 
             Glide.with(this)
@@ -135,6 +136,7 @@ class ProfileActivity : AppCompatActivity() {
             binding.profilewillingTick.isChecked = user.willingToDonate == true
 
             if (!pictureJustChanged && user.img != null) {
+
                 Glide.with(this)
                     .load(StorageSession.pathToReference(user.img!!))
                     .placeholder(R.drawable.empty_dp)
@@ -142,6 +144,10 @@ class ProfileActivity : AppCompatActivity() {
             }
             binding.profileBar.visibility = View.GONE
             binding.profilefinalizeBt.isEnabled = true
+
+            binding.profileDp.startAnimation(AnimationUtils.loadAnimation(this, R.anim.fade_in))
+            binding.profilefinalizeBt.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_up))
+
 
         }
     }

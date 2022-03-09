@@ -82,8 +82,8 @@
         app:boxCornerRadiusTopEnd="30dp"
         app:boxCornerRadiusTopStart="30dp"
         app:boxStrokeColor="@color/text_color_grey"
-        app:endIconMode="password_toggle"
         app:hintTextColor="#000000"
+        app:endIconMode="password_toggle"
         app:layout_constraintEnd_toEndOf="@+id/phone_text"
         app:layout_constraintStart_toStartOf="@+id/phone_text"
         app:layout_constraintTop_toBottomOf="@+id/phone_text">
@@ -92,6 +92,7 @@
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:fontFamily="@font/normal_text"
+            android:inputType="textPassword"
             android:hint="Password"
             android:textSize="20sp" />
     </com.google.android.material.textfield.TextInputLayout>

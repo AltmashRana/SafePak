@@ -1,12 +1,17 @@
 package com.example.safepak.frontend.other
 
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.example.safepak.R
+import com.example.safepak.frontend.services.GestureService
 
-class SettingsActivity : AppCompatActivity() {
+class SettingsActivity : AppCompatActivity() , SharedPreferences.OnSharedPreferenceChangeListener{
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +28,26 @@ class SettingsActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this)
+
     }
+
+    override fun onSharedPreferenceChanged(p0: SharedPreferences?, p1: String?) {
+        val switch = p0?.getBoolean("gesture_switch", false)
+        if (switch == true){
+            val intent = Intent(this, GestureService::class.java)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            }
+            else
+                startService(intent)
+        } else {
+            val intent = Intent(this, GestureService::class.java)
+            stopService(intent)
+        }
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true

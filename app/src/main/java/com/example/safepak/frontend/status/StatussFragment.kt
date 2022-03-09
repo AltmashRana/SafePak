@@ -16,58 +16,42 @@ import com.example.safepak.databinding.FragmentStatusBinding
 import com.example.safepak.logic.models.Status
 import com.example.safepak.frontend.statusAdapters.MyStatusListAdapter
 import com.example.safepak.frontend.statusAdapters.StatusListAdapter
+import com.example.safepak.logic.models.Friendship
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.EventListener
+import com.google.firebase.ktx.Firebase
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
 import java.util.*
 import kotlin.collections.ArrayList
 
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [StatusFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class StatusFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-    private lateinit var statuses: ArrayList<Pair<User, Status>>
-    private lateinit var  mystatuses: ArrayList<Status>
-    private lateinit var db : FirebaseFirestore
-    private lateinit var myadapter : MyStatusListAdapter
-    private lateinit var myrecyclerView: RecyclerView
-    lateinit var recyclerView: RecyclerView
-    lateinit var adapter : StatusListAdapter
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var db: FirebaseFirestore
+    lateinit var myStatusAdapter : GroupAdapter<GroupieViewHolder>
+    lateinit var friendStatusAdapter : GroupAdapter<GroupieViewHolder>
 
     lateinit var binding: FragmentStatusBinding
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentStatusBinding.inflate(inflater, container, false)
 
         db = FirebaseFirestore.getInstance()
-        statuses = ArrayList()
-        mystatuses = ArrayList()
 
         binding.addstatusFab.setOnClickListener {
-            val intent = Intent(activity,AddStatusActivity::class.java)
+            val intent = Intent(activity, AddStatusActivity::class.java)
             startActivity(intent)
         }
 
-        binding.refreshBt.setOnClickListener {
+        binding.refreshstatusSwipe.setOnRefreshListener {
             loadStatuses()
+
             Toast.makeText(context, "Timeline refreshed", Toast.LENGTH_SHORT).show()
         }
 
@@ -77,124 +61,62 @@ class StatusFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        myrecyclerView = binding.mystatusRecycler
-        myadapter = MyStatusListAdapter(mystatuses)
-        myrecyclerView.adapter = myadapter
-        myrecyclerView.layoutManager = LinearLayoutManager(this.context)
-
-
-        recyclerView = binding.statusRecycler
-        adapter = StatusListAdapter(statuses)
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(this.context)
-
+        myStatusAdapter= GroupAdapter<GroupieViewHolder>()
+        friendStatusAdapter= GroupAdapter<GroupieViewHolder>()
+        binding.mystatusRecycler.adapter=myStatusAdapter
+        binding.statusRecycler.adapter=friendStatusAdapter
     }
 
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
+
+        binding.emptyMystatusText.visibility = View.VISIBLE
+        binding.emptystatusText.visibility = View.VISIBLE
 
         loadStatuses()
         loadMyStatuses()
-//        if (statuses.size == 0)
-//            binding.emptyMystatusText.visibility = View.VISIBLE
-//        else
-//            binding.emptyMystatusText.visibility = View.GONE
-//
-//        if (mystatuses.size == 0)
-//            binding.emptystatusText.visibility = View.VISIBLE
-//        else
-//            binding.emptyMystatusText.visibility = View.GONE
     }
 
-    fun loadMyStatuses(){
-        mystatuses.clear()
-        val query = db.collection("statuses")
-            .whereEqualTo("userid", FirebaseSession.userID)
+    fun loadMyStatuses() {
+        myStatusAdapter.clear()
+        val query = db.collection("statuses").whereEqualTo("userid", FirebaseSession.userID)
         query.get().addOnSuccessListener { documents ->
-                for (document in documents) {
-                    val doc = document.toObject(Status::class.java)
-                    mystatuses.add(doc)
-                }
-            myadapter.notifyDataSetChanged()
-
+            for (document in documents) {
+                val doc = document.toObject(Status::class.java)
+                myStatusAdapter.add(MyStatusListItem(doc, myStatusAdapter))
+                binding.emptyMystatusText.visibility = View.GONE
             }
+        }
             .addOnFailureListener { exception ->
-                Toast.makeText(view?.context,"Failed to load", Toast.LENGTH_SHORT).show()
+                Toast.makeText(view?.context, "Failed to load", Toast.LENGTH_SHORT).show()
             }
     }
 
-    fun loadStatuses(){
-        statuses.clear()
+    fun loadStatuses() {
+        friendStatusAdapter.clear()
+            FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}")
+                .get().addOnSuccessListener { docs ->
+                    docs.children.forEach{
 
-        val query = db.collection("users").
-        addSnapshotListener (object : EventListener<QuerySnapshot> {
-            override fun onEvent(
-                value: QuerySnapshot?,
-                error: FirebaseFirestoreException?
-            ) {
-                if (error != null) {
-                    Log.e("Firestore Error ", error.message.toString())
-                    return
-                }
-                for (doc: DocumentChange in value?.documentChanges!!) {
-                    if(doc.type == DocumentChange.Type.ADDED) {
-                        val user = doc.document.toObject(User::class.java)
-                        if (user.userid != FirebaseSession.userID) {
-                            val query1 = db.collection("requests")
-                                .whereEqualTo("userid", FirebaseSession.userID)
-                                .whereEqualTo("friendid", user.userid)
-                                .whereEqualTo("status", "added")
+                        val friendship = it.getValue(Friendship::class.java)
 
-                            val query2 = db.collection("requests")
-                                .whereEqualTo("userid", user.userid)
-                                .whereEqualTo("friendid", FirebaseSession.userID)
-                                .whereEqualTo("status", "added")
+                        db.collection("users").document(friendship?.friendid!!)
+                            .get().addOnSuccessListener { data ->
+                                val user = data.toObject(User::class.java)
 
-                            Tasks.whenAllSuccess<Any>(
-                                query1.get(),
-                                query2.get())
-                                .addOnSuccessListener { objects ->
-                                    for (obj in objects) {
-                                        val queryDocumentSnapshots = obj as QuerySnapshot
-                                        for (documentSnapshot in queryDocumentSnapshots) {
-//                                            val friendship = documentSnapshot.toObject(Friendship::class.java)
-                                            db.collection("statuses")
-                                                .whereEqualTo("userid", user.userid)
-                                                .get().addOnSuccessListener { statuslist ->
-                                                    for (status in statuslist) {
-                                                        val store = status.toObject(Status::class.java)
-                                                        statuses.add(Pair(user, store))
-                                                    }
-                                                    adapter.notifyDataSetChanged()
-                                                }
+                                db.collection("statuses")
+                                    .whereEqualTo("userid", user?.userid)
+                                    .get().addOnSuccessListener { statuslist ->
+                                        for (status in statuslist) {
+                                            val status = status.toObject(Status::class.java)
+                                            friendStatusAdapter.add(FriendStatusListItem(status, user!!))
+                                            binding.emptystatusText.visibility = View.GONE
                                         }
                                     }
-                                }
-                        }
+                            }
                     }
+                    binding.refreshstatusSwipe.isRefreshing = false
                 }
-            }
-        })
-    }
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment StoriesFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            StatusFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
     }
 }

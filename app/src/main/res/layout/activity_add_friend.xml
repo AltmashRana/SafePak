@@ -37,17 +37,16 @@
                 android:textColor="@color/black"
                 android:textSize="24sp"/>
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/refreshrequests_bt"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:padding="2dp"
+            <TextView
+                android:id="@+id/requests_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
-                android:src="@drawable/refresh"
                 android:layout_gravity="end"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="@drawable/ripple_bg"/>
+                android:text="0"
+                android:padding="2dp"
+                android:textSize="20sp"
+                />
 
             <ProgressBar
                 android:id="@+id/request_bar"
@@ -63,6 +62,11 @@
 
 
     </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshrequests_swipe"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -80,12 +84,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:listitem="@layout/requestlist_item"
-                android:minHeight="80dp"/>
+                android:minHeight="90dp"/>
 
             <TextView
                 android:id="@+id/emptyrequest_text"
@@ -130,6 +135,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="15dp"
                 android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -174,7 +180,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:fontFamily="@font/normal_text"
-                    android:hint="Seach"
+                    android:hint="Search"
                     android:imeOptions="actionSearch"
                     android:inputType="text"
                     android:singleLine="true"
@@ -194,4 +200,7 @@
                 app:layout_constraintTop_toBottomOf="@+id/search_layout" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 </LinearLayout>

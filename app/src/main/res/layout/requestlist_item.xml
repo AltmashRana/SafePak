@@ -48,20 +48,20 @@
         app:layout_constraintTop_toBottomOf="@+id/requestname_text" />
 
     <ImageView
-        android:id="@+id/accept_bt"
+        android:id="@+id/requestaccept_bt"
         android:layout_width="35dp"
         android:layout_height="35dp"
         android:layout_marginEnd="15dp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="@drawable/ripple_bg"
-        app:layout_constraintBottom_toBottomOf="@+id/decline_bt"
-        app:layout_constraintEnd_toStartOf="@+id/decline_bt"
-        app:layout_constraintTop_toTopOf="@+id/decline_bt"
+        app:layout_constraintBottom_toBottomOf="@+id/requestdecline_bt"
+        app:layout_constraintEnd_toStartOf="@+id/requestdecline_bt"
+        app:layout_constraintTop_toTopOf="@+id/requestdecline_bt"
         app:srcCompat="@drawable/accept" />
 
     <ImageView
-        android:id="@+id/decline_bt"
+        android:id="@+id/requestdecline_bt"
         android:layout_width="35dp"
         android:layout_height="35dp"
         android:layout_marginTop="16dp"

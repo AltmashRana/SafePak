@@ -14,7 +14,7 @@
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
 
-<!--    App theme Colors-->
+    <!--    App theme Colors-->
     <color name="app_blue">#00ADE2</color>
     <color name="gradient_green">#00FF77</color>
     <color name="gradient_blue">#00D5FF</color>
@@ -26,7 +26,9 @@
     <color name="navigation_grey">#DCDCDC</color>
 
 
-<!--    Ripple Colors-->
+    <!--    Ripple Colors-->
     <color name="colorWindowBackground">#F2F5FC</color>
     <color name="colorRipple">#0288d1</color>
+    <color name="light_blue_50">#FFE1F5FE</color>
+    <color name="light_blue_200">#FF81D4FA</color>
 </resources>

@@ -26,6 +26,7 @@
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/receive_bg.xml" value="0.11752136752136752" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/ripple_bg.xml" value="0.10854700854700855" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/safertbox_gradient.xml" value="0.1" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/safetybox_bg.xml" value="0.19814814814814816" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/safetybox_gradient.xml" value="0.11752136752136752" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/send_bg.xml" value="0.11752136752136752" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/shield.xml" value="0.2101851851851852" />
@@ -46,37 +47,47 @@
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/font/segueui.xml" value="0.2270042194092827" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_add_friend.xml" value="0.2" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_add_status.xml" value="0.2" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_chat_box.xml" value="0.34221598877980364" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_blood.xml" value="0.136" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_blood_broadcast.xml" value="0.152" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_blood_response.xml" value="0.4" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_chat_box.xml" value="0.4" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_directions.xml" value="0.10598290598290598" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_forget.xml" value="0.2" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_friends_profile.xml" value="0.2" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_home.xml" value="0.2" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_location.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_login.xml" value="0.2" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_profile.xml" value="0.264" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_profile.xml" value="0.3286004056795132" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_register.xml" value="0.2" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_splash.xml" value="0.1935897435897436" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_verify.xml" value="0.264" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/announcement_item.xml" value="0.536" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/chatlist_item.xml" value="0.2" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/closelist_item.xml" value="0.264" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/announcement_item.xml" value="0.41706161137440756" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/chatlist_item.xml" value="0.536" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/closelist_item.xml" value="0.4" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/emergency_widget.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_announcements.xml" value="0.264" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_broadcast.xml" value="0.4" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_chats.xml" value="0.264" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_safety.xml" value="0.10936799641416405" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_status.xml" value="0.14814814814814814" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_maps.xml" value="0.2" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_request.xml" value="0.4" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_safety.xml" value="0.3337969401947149" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_status.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/fragment_stories.xml" value="0.12" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/help_item.xml" value="0.264" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/help_item.xml" value="0.536" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/input_box.xml" value="0.10427350427350428" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/mystatus_item.xml" value="0.1" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/mystatus_item.xml" value="0.2" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/mystory_item.xml" value="0.2" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/receivemsg_item.xml" value="0.4" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/requestlist_item.xml" value="0.176" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/receivemsg_item.xml" value="0.536" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/requestlist_item.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/searchlist_item.xml" value="0.4" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/sendmsg_item.xml" value="0.4" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/sendmsg_item.xml" value="0.521613832853026" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/settings_activity.xml" value="0.1" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/status_item.xml" value="0.2" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/status_item.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/story_item.xml" value="0.2" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/menu/chat_dropdown.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/menu/main_dropdown.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/menu/main_menu.xml" value="0.4" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/menu/nav_menu.xml" value="0.1" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/menu/nav_menu.xml" value="0.4" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/xml/root_preferences.xml" value="0.2" />
