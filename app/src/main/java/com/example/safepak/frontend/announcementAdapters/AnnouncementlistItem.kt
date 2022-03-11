@@ -37,7 +37,7 @@ class AnnouncementlistItem(var call: Call): Item<GroupieViewHolder>() {
         }
 
         viewHolder.itemView.announcementdate_text.text = call.time
-        viewHolder.itemView.announcementlocation_text.text = call.location
+        viewHolder.itemView.announcementlocation_text.text = call.location?.address
 
         viewHolder.itemView.announcement_icon.startAnimation(animation)
         viewHolder.itemView.announcement_text.startAnimation(animation)

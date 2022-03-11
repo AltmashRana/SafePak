@@ -11,10 +11,12 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
+import android.os.HandlerThread
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
+import androidx.preference.PreferenceManager
 import com.example.safepak.data.User
 import com.example.safepak.frontend.services.LocationService
 import com.example.safepak.logic.models.Call
@@ -23,11 +25,15 @@ import com.example.safepak.logic.models.Friendship
 import com.example.safepak.logic.models.UserLocation
 import com.example.safepak.logic.models.notification.NotificationData
 import com.example.safepak.logic.models.notification.PushNotification
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
+import com.google.maps.android.SphericalUtil
 import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -38,6 +44,7 @@ object EmergencySession {
 
     private lateinit var myLocation : Location
     private var current_call : Call? = null
+    private var people_found = 0
 
     fun getCurrentCall(context : Context) : Call? {
         current_call = LocalDB.getEmergency(context)
@@ -57,7 +64,12 @@ object EmergencySession {
                             .document(friendship.friendid!!)
                         get_user.get().addOnSuccessListener { doc ->
                             val user = doc.toObject(User::class.java)!!
-                            sendNotification(PushNotification(NotificationData(FirebaseSession.userID!!, "level1","${user.firstname} here is my location","Level-1 Alert"),user.registrationTokens.last()))
+                            sendNotification(PushNotification(NotificationData(
+                                FirebaseSession.userID!!,
+                                current_call?.id!!,
+                                "level1",
+                                "${user.firstname} here is my location","Level-1 Alert"),
+                                user.registrationTokens.last()))
                             sendText(user, "Hey ${user.firstname}!\nI am feeling a little unsafe so that's why i called for level-1 alert.\nRight now i'm at ${location.address}.\nI am sharing my location in case something inconvenient happens.\nThanks")
                         }
                     }
@@ -76,18 +88,78 @@ object EmergencySession {
                             .document(friendship.friendid!!)
                             get_user.get().addOnSuccessListener { doc ->
                             val user = doc.toObject(User::class.java)!!
-                            sendNotification(PushNotification(NotificationData(FirebaseSession.userID!!, "level2", "Emergency!!! Please Help ${user.firstname}", "Level-2 Alert"), user.registrationTokens.last()))
-                            sendText(user, "PLEASE HELP ${user.firstname}!\nIt's an emergency call so that's why i called for level-2 alert.\nRight now i'm at ${location.address}.\nI am sharing my location live location.\nThanks")
+                            sendNotification(PushNotification(NotificationData(FirebaseSession.userID!!,
+                                current_call?.id!!,
+                                "level2",
+                                "Emergency!!! Please Help ${user.firstname}", "Level-2 Alert"),
+                                user.registrationTokens.last()))
+                                sendText(user, "PLEASE HELP ${user.firstname}!\nIt's an emergency call so that's why i called for level-2 alert.\nRight now i'm at ${location.address}.\nI am sharing my location live location.\nThanks")
                         }
                     }
                 }
             }
+
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val switch = prefs?.getBoolean("level2_switch", false)
+        val value = prefs.getInt("level2_radius",5)
+        val radius_values = arrayOf<Double>(2.0, 4.0, value.toDouble())
+
+        if (switch == true) {
+            for (i in radius_values) {
+                val center = LatLng(location.latitude!!.toDouble(), location.longitude!!.toDouble())
+                searchUserInRadius(center,i)
+            }
+        }
     }
+
+
+    fun checkInside(radius : Double, circle : LatLng, position : LatLng) : Boolean {
+        val distance = SphericalUtil.computeDistanceBetween(circle, position);
+
+        return distance < radius * 1000
+    }
+
+
+    fun searchUserInRadius(circle_center: LatLng, circle_radius: Double){
+        val ref = FirebaseDatabase.getInstance().getReference("/users-location")
+
+        val listener = object : ValueEventListener {
+            override fun onCancelled(databaseError: DatabaseError) {
+            }
+
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for(snapshot: DataSnapshot in dataSnapshot.children) {
+                    val location = snapshot.getValue(UserLocation::class.java)
+                    if (location != null) {
+                        val start = LatLng(circle_center.latitude.toDouble(), circle_center.longitude.toDouble())
+                        val end = LatLng(location.latitude!!.toDouble(), location.longitude!!.toDouble())
+                        if(checkInside(circle_radius, start, end)){
+                            FirebaseFirestore.getInstance().collection("users").document(snapshot.key!!)
+                                .get().addOnSuccessListener { doc ->
+                                    if (doc.exists()) {
+                                        val user = doc.toObject(User::class.java)
+                                        sendNotification(PushNotification(NotificationData(
+                                            FirebaseSession.userID!!,
+                                            current_call?.id!!,
+                                            "level2",
+                                            "Emergency!!! Please Help this person",
+                                            "Level-2 Alert"
+                                        ), user?.registrationTokens!!.last()))
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
+        }
+        ref.addListenerForSingleValueEvent(listener)
+    }
+
 
     private fun generateCall(type : String, context: Context?, location: UserLocation) {
         val query = FirebaseDatabase.getInstance().getReference("/emergency-calls/${FirebaseSession.userID}/")
         val id = query.push().key
-        val call = Call(id, FirebaseSession.userID!!, type, location.address, getDatetime(),"going")
+        val call = Call(id, FirebaseSession.userID!!, type, location, getDatetime(),"going")
         current_call = call
         LocalDB.storeEmergency(context!! ,current_call!!)
         query.child(id!!).setValue(call)
@@ -96,7 +168,7 @@ object EmergencySession {
     fun stopCall(context: Context?){
         val query = FirebaseDatabase.getInstance()
             .getReference("/emergency-calls/${FirebaseSession.userID}/")
-        LocalDB.deleteEmergency(context!!,current_call!!.id!!)
+        LocalDB.deleteEmergency(context!!)
         query.child(current_call?.id!!).updateChildren(mapOf("status" to "stopped"))
     }
 
@@ -125,27 +197,11 @@ object EmergencySession {
         }
     }
 
-    fun updateUserLocationInFirebase(context : Context, location: Location?) {
-        //this method will originally update user location in firebase database
-        //for now, it is updating only UI components for testing purposes
+    fun updateUserLocationInFirebase(location: UserLocation?) {
         if (location != null) {
-            val geocoder = Geocoder(context)
-            try {
-                val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                val loc = UserLocation(
-                    location.longitude.toString(),
-                    location.latitude.toString(),
-                    addresses[0].getAddressLine(0).toString()
-                )
-                val location_store = FirebaseDatabase.getInstance()
-                    .getReference("/users-location/${FirebaseSession.userID!!}/")
-                location_store.child(FirebaseSession.userID!!).setValue(loc)
-
-            } catch (e: java.lang.Exception) {
-                Toast.makeText(context, "Address capture failed", Toast.LENGTH_SHORT).show()
-            }
+                val location_store = FirebaseDatabase.getInstance().getReference("/users-location/${FirebaseSession.userID!!}/")
+                location_store.child(FirebaseSession.userID!!).setValue(location)
         }
-
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -160,5 +216,22 @@ object EmergencySession {
     fun isLocationEnabled(context: Context): Boolean {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return LocationManagerCompat.isLocationEnabled(locationManager)
+    }
+
+    public fun requestLocation(context: Context){
+        val mLocationRequest: LocationRequest = LocationRequest.create()
+        mLocationRequest.interval = 60000
+        mLocationRequest.fastestInterval = 5000
+        mLocationRequest.numUpdates = 1
+        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        val mLocationCallback: LocationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+            }
+        }
+        val handlerThread = HandlerThread("backgroundThread")
+        if (!handlerThread.isAlive) handlerThread.start()
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+            LocationServices.getFusedLocationProviderClient(context).requestLocationUpdates(mLocationRequest, mLocationCallback, handlerThread.looper)
     }
 }

@@ -25,6 +25,7 @@ import com.example.safepak.R
 import com.example.safepak.logic.models.UserLocation
 import com.example.safepak.logic.session.EmergencySession
 import com.example.safepak.logic.session.EmergencySession.isLocationEnabled
+import com.example.safepak.logic.session.EmergencySession.requestLocation
 import com.example.safepak.logic.session.EmergencySession.startLocationService
 import com.google.android.gms.location.LocationServices
 import kotlinx.android.synthetic.main.fragment_safety.*
@@ -111,12 +112,14 @@ class GestureService : Service() {
                         downTime = -9L
 
                         if (gesture_count == 2) {
+                            vibratePhone()
                             if (isLocationEnabled(this@GestureService)) {
                                 if (ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.ACCESS_FINE_LOCATION)
                                     == PackageManager.PERMISSION_GRANTED
                                 ) {
-                                    requestLocation()
+                                    requestLocation(this@GestureService)
                                     updateGPS { result ->
+                                        vibratePhone()
                                         startLocationService(this@GestureService)
                                         level2Cancel_flag = true
                                         if (result != null) {
@@ -176,24 +179,6 @@ class GestureService : Service() {
         mediaSession.release()
     }
 
-    fun requestLocation(){
-        val mLocationRequest: LocationRequest = LocationRequest.create()
-        mLocationRequest.interval = 60000
-        mLocationRequest.fastestInterval = 5000
-        mLocationRequest.numUpdates = 1
-        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        val mLocationCallback: LocationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                super.onLocationResult(locationResult)
-            }
-        }
-        val handlerThread = HandlerThread("backgroundThread")
-        if (!handlerThread.isAlive) handlerThread.start()
-        if (ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-            LocationServices.getFusedLocationProviderClient(this@GestureService).requestLocationUpdates(mLocationRequest, mLocationCallback, handlerThread.looper)
-
-    }
-
     private fun updateGPS(onComplete: (UserLocation?) -> Unit) {
         val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this@GestureService)
         //we have permission from user
@@ -205,7 +190,7 @@ class GestureService : Service() {
                     if(location != null) {
                         val address = geocoder.getFromLocation(location.latitude, location.longitude, 1)[0].getAddressLine(0).toString()
                         result = UserLocation(location.longitude.toString(), location.latitude.toString(), address)
-                        EmergencySession.updateUserLocationInFirebase(this@GestureService, location)
+                        EmergencySession.updateUserLocationInFirebase(result)
                         onComplete(result)
                     }
                 } catch (e: Exception) {

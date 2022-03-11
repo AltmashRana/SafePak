@@ -42,7 +42,7 @@ import kotlin.math.log2
 
 class BloodBroadcastActivity : AppCompatActivity(), OnMapReadyCallback , IBloodBroadcast {
 
-    private lateinit var mylocation : Location
+    private lateinit var mylocation : UserLocation
     private lateinit var mMap: GoogleMap
     private var circle: Circle? = null
     private lateinit var binding: ActivityBloodBroadcastBinding
@@ -69,7 +69,7 @@ class BloodBroadcastActivity : AppCompatActivity(), OnMapReadyCallback , IBloodB
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        val position = LatLng(mylocation.latitude, mylocation.longitude)
+        val position = LatLng(mylocation.latitude!!.toDouble(), mylocation.longitude!!.toDouble())
         mMap.addMarker(MarkerOptions().position(position).title("You"))
         mMap.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
@@ -135,12 +135,8 @@ class BloodBroadcastActivity : AppCompatActivity(), OnMapReadyCallback , IBloodB
             fusedLocationProviderClient?.lastLocation?.addOnSuccessListener{ location ->
                 val geocoder = Geocoder(this)
                 try {
-                    mylocation = location
-                        address = geocoder.getFromLocation(
-                            location.latitude,
-                            location.longitude,
-                            1
-                        )[0].getAddressLine(0).toString()
+                    address = geocoder.getFromLocation(location.latitude, location.longitude, 1)[0].getAddressLine(0).toString()
+                    mylocation = UserLocation(location.longitude.toString(), location.latitude.toString(),address)
                     val mapFragment = supportFragmentManager.findFragmentById(R.id.blood_map) as? SupportMapFragment
                     mapFragment?.getMapAsync(this)
                 } catch (e: Exception) {
@@ -159,10 +155,10 @@ class BloodBroadcastActivity : AppCompatActivity(), OnMapReadyCallback , IBloodB
         bundle.putString("BLOOD", blood)
 
         val values = calculateCircleRadiusAndZoom(radius)
-        drawCircle(LatLng(mylocation.latitude, mylocation.longitude), mMap, values.first, 0x20ff0000)
+        drawCircle(LatLng(mylocation.latitude!!.toDouble(), mylocation.longitude!!.toDouble()), mMap, values.first, 0x20ff0000)
         animateCircle(values.first)
 
-        val circle_center = UserLocation( mylocation.longitude.toString(), mylocation.latitude.toString(), address)
+        val circle_center = mylocation
 
         bundle.putParcelable("CIRCLE", circle_center)
         bundle.putDouble("RADIUS", radius)
@@ -183,13 +179,13 @@ class BloodBroadcastActivity : AppCompatActivity(), OnMapReadyCallback , IBloodB
 
     override fun changeCircle(radius: Double) {
 
-        val position = LatLng(mylocation.latitude, mylocation.longitude)
+        val position = LatLng(mylocation.latitude!!.toDouble(), mylocation.longitude!!.toDouble())
 
         val values = calculateCircleRadiusAndZoom(radius)
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, values.second.toFloat()))
 
-        drawCircle(LatLng(mylocation.latitude, mylocation.longitude), mMap, values.first, 0x20ff0000)
+        drawCircle(LatLng(mylocation.latitude!!.toDouble(), mylocation.longitude!!.toDouble()), mMap, values.first, 0x20ff0000)
     }
 
     fun calculateCircleRadiusAndZoom(radius: Double) : Pair<Double, Double>{

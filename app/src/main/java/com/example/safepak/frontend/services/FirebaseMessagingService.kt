@@ -47,7 +47,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         val id = message.data["userid"].toString()
 
         FirebaseFirestore.getInstance().collection("users").document(id)
-            .get().addOnSuccessListener { it ->
+            .get().addOnSuccessListener {
 
                 val user = it.toObject(User::class.java)
 
@@ -75,7 +75,8 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                         sendNotificationLevel2(
                             user!!,
                             message.data["body"]!!,
-                            message.data["title"]!!
+                            message.data["title"]!!,
+                            message.data["callid"]!!
                         )
                     }
 
@@ -253,7 +254,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         notificationManager.notify(5678, builder.build())
     }
 
-    fun sendNotificationLevel2(user : User, body : String, title : String){
+    fun sendNotificationLevel2(user : User, body : String, title : String, callid : String){
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -273,6 +274,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 
             intent = Intent(this, LocationActivity::class.java)
             intent.putExtra("user", user)
+            intent.putExtra("call_id", callid)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ONE_SHOT)
 

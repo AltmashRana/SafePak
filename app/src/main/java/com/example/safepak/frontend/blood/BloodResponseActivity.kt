@@ -55,7 +55,7 @@ class BloodResponseActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
 
         binding.bloodresponseBt.setOnClickListener {
-            FirebaseSession.sendText(user, "\uD83E\uDE78Hi, ${user.firstname}. I think i can arrange $blood blood.")
+            FirebaseSession.sendText(user, "\uD83E\uDE78Hi, ${user.firstname}. I think i can arrange $blood blood\uD83E\uDE78")
             Toast.makeText(this, "Responded", Toast.LENGTH_SHORT).show()
             finish()
         }

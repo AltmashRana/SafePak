@@ -12,7 +12,10 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.preference.PreferenceManager
 import com.example.safepak.frontend.services.GestureService
 import com.example.safepak.frontend.services.LocationService
+import com.example.safepak.logic.session.EmergencySession
+import com.example.safepak.logic.session.LocalDB
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class SafePak : Application(), LifecycleObserver {
 

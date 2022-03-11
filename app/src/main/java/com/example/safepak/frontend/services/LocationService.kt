@@ -9,6 +9,7 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.location.Geocoder
 import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
@@ -18,6 +19,7 @@ import com.example.safepak.R
 import com.example.safepak.logic.models.Constants
 import com.google.android.gms.location.*
 import android.os.HandlerThread
+import com.example.safepak.logic.models.UserLocation
 import com.example.safepak.logic.session.EmergencySession.updateUserLocationInFirebase
 
 
@@ -42,8 +44,7 @@ class LocationService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        updateGPS()
-
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         locationRequest = LocationRequest()
         locationRequest!!.interval = (1000 * DEFAULT_UPDATE_INTERVAL).toLong()
         locationRequest!!.fastestInterval = (1000 * FAST_UPDATE_INTERVAL).toLong()
@@ -53,10 +54,17 @@ class LocationService : Service() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
-                updateUserLocationInFirebase(context, locationResult.lastLocation)
-                Toast.makeText(applicationContext, "Location updated", Toast.LENGTH_SHORT).show()
+                val location = locationResult.lastLocation
+                val geocoder = Geocoder(this@LocationService)
+                try {
+                    val address = geocoder.getFromLocation(location.latitude, location.longitude, 1)[0].getAddressLine(0).toString()
+                    val result = UserLocation(locationResult.lastLocation.longitude.toString(), locationResult.lastLocation.longitude.toString(), address)
+                    updateUserLocationInFirebase(result)
+                    Toast.makeText(applicationContext, "Location updated", Toast.LENGTH_SHORT).show()
+                } catch (e : NullPointerException) {
+                    Toast.makeText(applicationContext, "Geo-Api Failed", Toast.LENGTH_SHORT).show()
+                }
             }
-
         }
     }
     override fun onBind(p0: Intent?): IBinder? {
@@ -126,19 +134,13 @@ class LocationService : Service() {
         stopSelf()
     }
 
-    private fun updateGPS() {
-        //get permission from user for location access
-        //get current location
-        //update location on UI (originally in firebase)
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        //we do not have permission from user - ask for permission
-        //Check if our android device have location services and request
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        ) {
-            //we have permission from user
-            fusedLocationProviderClient!!.lastLocation.addOnSuccessListener { location ->
-                updateUserLocationInFirebase(context, location)
-            }
-        }
-    }
+//    private fun updateGPS() {
+//        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+//        ) {
+//            fusedLocationProviderClient!!.lastLocation.addOnSuccessListener { location ->
+//                updateUserLocationInFirebase(location)
+//            }
+//        }
+//    }
 }

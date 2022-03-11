@@ -6,6 +6,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".frontend.safety.SafetyFragment">
 
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshsafety_swipe"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -213,6 +218,33 @@
                 android:minHeight="100dp"/>
 
             <TextView
+                android:id="@+id/unknownhelp_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="30dp"
+                android:fontFamily="@font/bold_titles"
+                android:text="Strangers In Danger"
+                android:textColor="@color/medium_black"
+                android:textSize="24sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/help_recycler" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/unknownhelp_recycler"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/unknownhelp_text"
+                tools:listitem="@layout/unknownhelp_item"
+                android:minHeight="100dp"/>
+
+            <TextView
                 android:id="@+id/emptyhelp_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -223,6 +255,19 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/help_recycler" />
 
+            <TextView
+                android:id="@+id/emptyunknownhelp_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No emergency calls yet"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/unknownhelp_recycler"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/unknownhelp_recycler" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 </FrameLayout>

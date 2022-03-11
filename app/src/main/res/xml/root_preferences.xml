@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory app:title="@string/general_header">
 
         <SwitchPreferenceCompat
@@ -22,10 +23,17 @@
 
         <SwitchPreferenceCompat app:title="@string/face_settings"
             app:summary="Extract faces from video"/>
-        <SwitchPreferenceCompat app:title="@string/map_settings"
+        <SwitchPreferenceCompat
+            app:key="level2_switch"
+            app:title="@string/map_settings"
             app:summary="Look for nearby people in range for help"/>
         <SeekBarPreference
-            app:showSeekBarValue="true"/>
+            android:key="level2_radius"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="2"
+            android:max="20"
+            app:min="5"
+            app:defaultValue="5"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

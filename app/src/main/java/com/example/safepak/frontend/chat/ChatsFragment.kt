@@ -2,26 +2,20 @@ package com.example.safepak.frontend.chat
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.example.safepak.data.User
 import com.example.safepak.databinding.FragmentChatsBinding
 import com.example.safepak.frontend.chatAdapters.ChatlistItem
-import com.example.safepak.frontend.chatAdapters.ReceiveItem
-import com.example.safepak.frontend.chatAdapters.SendItem
 import com.example.safepak.logic.models.Message
-import com.google.android.gms.tasks.Tasks
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import java.util.*
@@ -31,7 +25,7 @@ import java.util.*
 class ChatsFragment : Fragment() {
 
     lateinit var db: FirebaseFirestore
-    private val latestMessagesMap = HashMap<String, Message>()
+    private val latestMessagesMap = HashMap<String, Pair<Message, Pair<User, Boolean>>>()
     private var adapter = GroupAdapter<GroupieViewHolder>()
 
     lateinit var binding: FragmentChatsBinding
@@ -63,7 +57,6 @@ class ChatsFragment : Fragment() {
         binding.refreshchatsSwipe.setOnRefreshListener {
             loadUsers()
         }
-
     }
 
     companion object {
@@ -73,12 +66,13 @@ class ChatsFragment : Fragment() {
     private fun refreshRecyclerViewMessages(flag : Boolean) {
         adapter.clear()
         latestMessagesMap.values.forEach {
-            val chat = ChatlistItem(it, flag)
+            val chat = ChatlistItem(it.first, it.second.first, it.second.second, flag)
             adapter.add(chat)
         }
     }
 
     private fun loadUsers() {
+        adapter.clear()
         val fromId = FirebaseSession.userID
         val latest_query = FirebaseDatabase.getInstance().getReference("/latest-messages/$fromId")
 
@@ -86,9 +80,30 @@ class ChatsFragment : Fragment() {
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
                 p0.children.forEach {
                     val message = it.getValue(Message::class.java)
-                    latestMessagesMap[it.key.toString()] = message!!
-                    refreshRecyclerViewMessages(true)
-                    binding.emptychatsText.visibility = View.GONE
+                    val chatPartnerId : String
+                    if (message?.senderid == FirebaseSession.userID)
+                        chatPartnerId = message?.receiverid!!
+                    else
+                        chatPartnerId = message?.senderid!!
+
+                    val get_user = FirebaseFirestore.getInstance().collection("users").document(chatPartnerId)
+                    get_user.get().addOnSuccessListener { doc ->
+
+                        val user = doc.toObject(User::class.java)!!
+
+                        FirebaseDatabase.getInstance()
+                            .getReference("/friends/${FirebaseSession.userID}/${user.userid}")
+                            .get().addOnSuccessListener { friend ->
+                                if (friend.children.count() > 0) {
+                                    latestMessagesMap[it.key.toString()] =
+                                        Pair(message, Pair(user, true))
+                                } else
+                                    latestMessagesMap[it.key.toString()] =
+                                        Pair(message, Pair(user, false))
+                                refreshRecyclerViewMessages(true)
+                                binding.emptychatsText.visibility = View.GONE
+                            }
+                    }
                 }
                 binding.refreshchatsSwipe.isRefreshing = false
             }
@@ -98,9 +113,29 @@ class ChatsFragment : Fragment() {
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
                 p0.children.forEach {
                     val message = it.getValue(Message::class.java)
-                    latestMessagesMap[it.key.toString()] = message!!
-                    refreshRecyclerViewMessages(false)
-                    binding.emptychatsText.visibility = View.GONE
+                    val chatPartnerId : String
+                    if (message?.senderid == FirebaseSession.userID)
+                        chatPartnerId = message?.receiverid!!
+                    else
+                        chatPartnerId = message?.senderid!!
+
+                    val get_user = FirebaseFirestore.getInstance().collection("users").document(chatPartnerId)
+                    get_user.get().addOnSuccessListener { doc ->
+
+                        val user = doc.toObject(User::class.java)!!
+
+                        FirebaseDatabase.getInstance()
+                            .getReference("/friends/${FirebaseSession.userID}/${user.userid}")
+                            .get().addOnSuccessListener { friend ->
+                                if (friend.children.count() > 0) {
+                                    latestMessagesMap[it.key.toString()] =
+                                        Pair(message, Pair(user, true))
+                                } else
+                                    latestMessagesMap[it.key.toString()] =
+                                        Pair(message, Pair(user, false))
+                                refreshRecyclerViewMessages(false)
+                            }
+                    }
                 }
             }
 
@@ -120,14 +155,13 @@ class ChatsFragment : Fragment() {
         adapter.setOnItemClickListener { item, view ->
             val userItem = item as ChatlistItem
             val intent = Intent(view.context, ChatBoxActivity::class.java)
-            if (userItem.friend_flag != null) {
-                intent.putExtra(USER_KEY, userItem.user)
-                intent.putExtra("IS_FRIEND", userItem.friend_flag)
-                startActivity(intent)
-            }
+            intent.putExtra(USER_KEY, userItem.user)
+            intent.putExtra("IS_FRIEND", userItem.flag)
+            startActivity(intent)
         }
 
         binding.chatsRecycler.adapter = adapter
     }
+
 
 }

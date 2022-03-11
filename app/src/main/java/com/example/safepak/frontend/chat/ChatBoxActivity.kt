@@ -283,14 +283,17 @@ class ChatBoxActivity : AppCompatActivity() {
             .getReference("chat-channels/${user.userid}")
             .child(FirebaseSession.userID!!)
             .removeValue()
+
         FirebaseDatabase.getInstance()
             .getReference("chat-channels/${FirebaseSession.userID}")
             .child(user.userid!!)
             .removeValue()
+
         FirebaseDatabase.getInstance()
             .getReference("latest-messages/${user.userid}/${FirebaseSession.userID!!}")
             .child("${user.userid}${FirebaseSession.userID!!}")
             .updateChildren(mapOf("text" to ""))
+
         FirebaseDatabase.getInstance()
             .getReference("latest-messages/${FirebaseSession.userID}/${user.userid}")
             .child("${FirebaseSession.userID!!}${user.userid}")

@@ -68,7 +68,7 @@
         android:fontFamily="@font/normal_text"
         android:maxWidth="200dp"
         android:maxLines="1"
-        android:text="............."
+        android:text=".........................."
         android:textAlignment="viewStart"
         android:textColor="@color/medium_black"
         android:textSize="14sp"

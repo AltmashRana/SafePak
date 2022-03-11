@@ -106,7 +106,7 @@ object FirebaseSession {
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendText(user : User, text : String) {
 
-        val fromId = FirebaseSession.getCurrentUser { current ->
+        FirebaseSession.getCurrentUser { current ->
             val fromId = current.userid
             val toId = user.userid
 
@@ -156,6 +156,7 @@ object FirebaseSession {
                     PushNotification(
                         NotificationData(
                             fromId,
+                            "",
                             "chat",
                             "${current.firstname}: $text",
                             "Message"

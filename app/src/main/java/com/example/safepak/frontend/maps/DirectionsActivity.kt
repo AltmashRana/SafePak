@@ -88,11 +88,7 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
                 super.onLocationResult(locationResult)
                 start = LatLng(locationResult.lastLocation.latitude, locationResult.lastLocation.longitude)
                 if (animate_flag)
-                    mMap.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                           start, 17.0f
-                        )
-                    )
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(start, 17.0f))
                 Toast.makeText(applicationContext, "Location updated", Toast.LENGTH_SHORT).show()
             }
         }
@@ -103,7 +99,7 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
         mMap = googleMap
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-            googleMap.isMyLocationEnabled = true;
+            googleMap.isMyLocationEnabled = true
 
         val ref = FirebaseDatabase.getInstance().getReference("/users-location/${user.userid}")
         ref.addChildEventListener(object: ChildEventListener {
@@ -124,6 +120,7 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
                     marker?.remove()
                     marker = googleMap.addMarker(place2!!)
 
+                    binding.directionsAddress.text = location.address
 
                     drawCircle(place2!!.position, mMap, 0x200000ff)
                 }
@@ -147,6 +144,8 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
 
                     marker?.remove()
                     marker = googleMap.addMarker(place2!!)
+
+                    binding.directionsAddress.text = location.address
 
                     drawCircle(place2!!.position, mMap, 0x200000ff)
                 }

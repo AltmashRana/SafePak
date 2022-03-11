@@ -48,7 +48,7 @@ RecyclerView.Adapter<AnnouncementlistAdapter.ViewHolder>() {
         // Get element from your dataset at this position and replace the
         // contents of the view with that element
 
-        viewHolder.location.text = calls[position].location
+        viewHolder.location.text = calls[position].location!!.address
         when(calls[position].type){
             "level1" -> {viewHolder.text.text = "Person is feeling unsafe"
                 viewHolder.icon.setImageResource(R.drawable.level1_ic)

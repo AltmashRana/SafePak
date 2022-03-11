@@ -42,6 +42,7 @@ class BroadcastFragment : Fragment() {
     lateinit var comm: IBloodBroadcast
     lateinit var blood : String
     lateinit var circle_center : UserLocation
+    lateinit var callid : String
     var circle_radius : Double = 0.0
 
     var respondant_count = 0
@@ -80,7 +81,7 @@ class BroadcastFragment : Fragment() {
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
                 p0.children.forEach{
                     val message = it.getValue(Message::class.java)
-                    if (message!!.timestamp != "" && message.timestamp.toDouble() >= time && message.text!!.startsWith("\uD83E\uDE78")) {
+                    if (message!!.timestamp != "" && message.timestamp.toDouble() >= time && message.text!!.startsWith("\uD83E\uDE78") && message.text!!.endsWith("\uD83E\uDE78")) {
                         respondant_count = +1
                         if (respondant_count > 1)
                             binding.broadcastText.text = "$respondant_count persons have responded!"
@@ -95,12 +96,12 @@ class BroadcastFragment : Fragment() {
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
                 p0.children.forEach {
                     val message = it.getValue(Message::class.java)
-                    if (message!!.timestamp != "" && message.timestamp.toDouble() >= time && message.text!!.startsWith("\uD83E\uDE78")) {
+                    if (message!!.timestamp != "" && message.timestamp.toDouble() >= time && message.text!!.startsWith("\uD83E\uDE78") && message.text!!.endsWith("\uD83E\uDE78")) {
                         respondant_count = +1
                         if (respondant_count > 1)
                             binding.broadcastText.text = "$respondant_count persons have responded!"
                         else
-                            binding.broadcastText.text = "$respondant_count person hae responded!"
+                            binding.broadcastText.text = "$respondant_count person has responded!"
                     }
                 }
             }
@@ -123,9 +124,9 @@ class BroadcastFragment : Fragment() {
 
     private fun sendBroadcast() {
         val q = FirebaseDatabase.getInstance().getReference("/emergency-calls/${FirebaseSession.userID}/")
-        val id = q.push().key
-        val call = Call(id, FirebaseSession.userID, "medical", circle_center.address, getDatetime(),"stopped")
-        q.child(id!!).setValue(call)
+        callid = q.push().key!!
+        val call = Call(callid, FirebaseSession.userID, "medical", circle_center, getDatetime(),"stopped")
+        q.child(callid).setValue(call)
 
         val query = FirebaseFirestore.getInstance().collection("users")
             .whereEqualTo("bloodgroup", blood)
@@ -156,23 +157,7 @@ class BroadcastFragment : Fragment() {
 
         return distance < radius * 1000
     }
-//
-//    fun calculateDistance (circleLat : Double , circleLong : Double
-//                           , userLat : Double , userLong : Double) : Double{
-//        var c = sin(Math.toRadians(circleLat)) *
-//                sin(Math.toRadians(userLat)) +
-//                cos(Math.toRadians(circleLat)) *
-//                cos(Math.toRadians(userLat)) *
-//                cos(Math.toRadians(userLong) -
-//                        Math.toRadians(circleLong))
-//
-//        c = if (c > 0)
-//            min(1.0, c)
-//        else
-//            max(-1.0, c)
-//
-//        return 3959 * 1.609 * 1000 * acos(c);
-//    }
+
 
     fun searchUserInRadius(user : User){
         val ref = FirebaseDatabase.getInstance().getReference("/users-location/${user.userid}")
@@ -190,7 +175,7 @@ class BroadcastFragment : Fragment() {
                         if(checkInside(circle_radius, start, end)){
                             FirebaseSession.sendNotification(
                                 PushNotification(
-                                    NotificationData(FirebaseSession.userID!!, "medical","Need ${blood} blood.", "Medical Emergency", blood),user.registrationTokens.last())
+                                    NotificationData(FirebaseSession.userID!!, callid,"medical","Need ${blood} blood.", "Medical Emergency", blood),user.registrationTokens.last())
                             )
                         }
                     }
@@ -199,4 +184,22 @@ class BroadcastFragment : Fragment() {
         }
         ref.addListenerForSingleValueEvent(listener)
     }
+
+    //
+//    fun calculateDistance (circleLat : Double , circleLong : Double
+//                           , userLat : Double , userLong : Double) : Double{
+//        var c = sin(Math.toRadians(circleLat)) *
+//                sin(Math.toRadians(userLat)) +
+//                cos(Math.toRadians(circleLat)) *
+//                cos(Math.toRadians(userLat)) *
+//                cos(Math.toRadians(userLong) -
+//                        Math.toRadians(circleLong))
+//
+//        c = if (c > 0)
+//            min(1.0, c)
+//        else
+//            max(-1.0, c)
+//
+//        return 3959 * 1.609 * 1000 * acos(c);
+//    }
 }

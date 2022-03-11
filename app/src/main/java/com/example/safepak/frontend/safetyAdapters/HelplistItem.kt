@@ -37,9 +37,7 @@ class HelplistItem(var data: Pair<User, Call>): Item<GroupieViewHolder>() {
             .placeholder(R.drawable.empty_dp)
             .into( viewHolder.itemView.help_dp)
 
-        viewHolder.itemView.help_dp.startAnimation(animation)
-        viewHolder.itemView.help_text.startAnimation(animation)
-        viewHolder.itemView.help_icon.startAnimation(animation)
+        viewHolder.itemView.startAnimation(animation)
 
     }
 }
