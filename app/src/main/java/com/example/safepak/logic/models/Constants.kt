@@ -1,7 +1,11 @@
 package com.example.safepak.logic.models
 
 object Constants {
-    const val LOCATION_SERVICE_ID = 175;
+    val videoExtensions = arrayOf(".mp4",".ts",".mkv",".mov",
+        ".3gp",".mv2",".m4v",".webm",".mpeg1",".mpeg2",".mts",".ogm",
+        ".bup", ".dv",".flv",".m1v",".m2ts",".mpeg4",".vlc",".3g2",
+        ".avi",".mpeg",".mpg",".wmv",".asf")
+
     const val ACTION_START_LOCATION_SERVICE = "startLocationService"
     const val ACTION_STOP_LOCATION_SERVICE = "stoplocationService"
     const val BASE_URL = "https://fcm.googleapis.com"

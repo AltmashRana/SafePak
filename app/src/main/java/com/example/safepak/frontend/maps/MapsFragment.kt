@@ -34,6 +34,7 @@ class MapsFragment : Fragment() {
 
     private val mMap: GoogleMap? = null
     private lateinit var user : User
+    private var isfriend : Boolean = false
     var previousLatLng: LatLng? = null
     var currentLatLng: LatLng? = null
     private val polyline1: Polyline? = null
@@ -171,6 +172,7 @@ class MapsFragment : Fragment() {
 
         val bundle = this.arguments
         user = bundle?.getParcelable<User>("user") as User
+        isfriend = bundle.getBoolean("is_friend", false)
 
         return binding.root
     }

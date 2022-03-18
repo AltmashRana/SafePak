@@ -1,18 +1,23 @@
 package com.example.safepak.frontend.safety
 
 
+
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.daimajia.androidanimations.library.Techniques
@@ -32,6 +37,7 @@ import com.example.safepak.frontend.blood.BloodBroadcastActivity
 import com.example.safepak.frontend.maps.LocationActivity
 import com.example.safepak.frontend.safetyAdapters.HelplistItem
 import com.example.safepak.frontend.safetyAdapters.UnknownHelplistItem
+import com.example.safepak.frontend.services.CameraService
 import com.example.safepak.logic.models.Call
 import com.google.android.gms.location.*
 import java.util.HashMap
@@ -48,6 +54,10 @@ import com.example.safepak.logic.session.EmergencySession.stopLocationService
 import com.example.safepak.logic.session.EmergencySession.updateUserLocationInFirebase
 import com.example.safepak.logic.session.LocalDB
 import com.google.firebase.database.*
+import androidx.core.app.ActivityCompat.startActivityForResult
+
+
+
 
 
 class SafetyFragment : Fragment() {
@@ -60,7 +70,7 @@ class SafetyFragment : Fragment() {
     private val unkownhelplistAdapter = GroupAdapter<GroupieViewHolder>()
     private lateinit var unknownhelp_recycler: RecyclerView
     private val latestCallsMap = HashMap<String, Pair<User,Call>>()
-    private val latestUnknownCallsMap = HashMap<String, Pair<User,Call>>()
+    private val latestUnknownCallsMap = HashMap<String, Pair<Call, Pair<User, Boolean>>>()
 
     private lateinit var db: FirebaseFirestore
 
@@ -101,6 +111,7 @@ class SafetyFragment : Fragment() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -122,13 +133,23 @@ class SafetyFragment : Fragment() {
         help_recycler = binding.helpRecycler
         help_recycler.adapter = helplistAdapter
 
+        unknownhelp_recycler = binding.unknownhelpRecycler
+        unknownhelp_recycler.adapter = unkownhelplistAdapter
+
         loadCloselist()
+
+        updateGPS{}
 
         binding.emptycloseText.visibility = View.VISIBLE
 
         binding.emptyhelpText.visibility = View.VISIBLE
 
+        binding.emptyunknownhelpText.visibility = View.VISIBLE
+
         binding.refreshsafetySwipe.setOnRefreshListener {
+            binding.emptyhelpText.visibility = View.VISIBLE
+            binding.emptyhelpText.visibility = View.VISIBLE
+            binding.emptyunknownhelpText.visibility = View.VISIBLE
             loadCloselist()
             loadHelplist()
             loadUnknownHelplist()
@@ -202,53 +223,75 @@ class SafetyFragment : Fragment() {
 
         binding.level2Bt.setOnClickListener {
             if (level1_flag == 0 && level1Cancel_flag == 0 && level2_flag == 0 && level2Cancel_flag == 0 ) {
-                if (EmergencySession.isLocationEnabled(view.context)) {
-
-                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
-                        requestLocation(requireContext())
-                            updateGPS{ result ->
-                                if (result != null) {
-                                    level2_bt.setImageResource(R.drawable.cancel_ic)
-                                    level2Cancel_flag = 1
-                                    EmergencySession.startLocationService(context)
-                                    Toast.makeText(context, "Level-2 call will be initiated in 3 secs", Toast.LENGTH_SHORT).show()
-                                    Thread {
-                                        Thread.sleep(3000)
-                                        activity?.runOnUiThread {
-                                            Runnable {
-                                                if (level2Cancel_flag == 1) {
-                                                    binding.level2Bt.isEnabled = false
-                                                    YoYo.with(Techniques.Tada)
-                                                        .duration(400)
-                                                        .repeat(1)
-                                                        .playOn(binding.level2Bt);
-                                                    initiateLevel2(requireContext(), result)
-                                                    level2Cancel_flag = 0
-                                                    level2_flag = 1
-                                                    Toast.makeText(context, "Level-2 emergency initiated!", Toast.LENGTH_SHORT).show()
-                                                    binding.level2Bt.isEnabled = true
-                                                }
-                                            }.run()
-                                        }
-                                    }.start()
-                                }
-                            }
-                    }
-                    else{
-                        requestPermissionLauncher.launch(
-                            Manifest.permission.ACCESS_FINE_LOCATION)
-                    }
-                } else
-                    Toast.makeText(context, "Call Failed!, Please turn on location", Toast.LENGTH_SHORT).show()
+//                if (EmergencySession.isLocationEnabled(view.context)) {
+//
+//                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION)
+//                        == PackageManager.PERMISSION_GRANTED) {
+//                        requestLocation(requireContext())
+//                            updateGPS{ result ->
+//                                if (result != null) {
+//                                    level2_bt.setImageResource(R.drawable.cancel_ic)
+//                                    level2Cancel_flag = 1
+//                                    Toast.makeText(context, "Level-2 call will be initiated in 3 secs", Toast.LENGTH_SHORT).show()
+//                                    Thread {
+//                                        Thread.sleep(3000)
+//                                        activity?.runOnUiThread {
+//                                            Runnable {
+//                                                if (level2Cancel_flag == 1) {
+//                                                    binding.level2Bt.isEnabled = false
+//                                                    YoYo.with(Techniques.Tada)
+//                                                        .duration(400)
+//                                                        .repeat(1)
+//                                                        .playOn(binding.level2Bt)
+//
+//                                                    EmergencySession.startLocationService(context)
+//                                                    initiateLevel2(requireContext(), result)
+                if (ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+//                    && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
+                )
+                {
+                    binding.level2Bt.setImageResource(R.drawable.cancel_ic)
+                    val intent = Intent(context, CameraService::class.java)
+                    intent.putExtra("Front_Request", true)
+                    context?.startForegroundService(intent)
+                    level2Cancel_flag = 0
+                    level2_flag = 1
+                    Toast.makeText(context, "Level-2 emergency initiated!", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.level2Bt.isEnabled = true
+                }else {
+                    requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    requestCameraPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    requestCameraPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    requestCameraPermissionLauncher.launch(Manifest.permission.SYSTEM_ALERT_WINDOW)
+                    checkStartPermissionRequest()
+                }
+//                                                }
+//                                            }.run()
+//                                        }
+//                                    }.start()
+//                                }
+//                            }
+//                    }
+//                    else{
+//                        requestPermissionLauncher.launch(
+//                            Manifest.permission.ACCESS_FINE_LOCATION)
+//                    }
+//                } else
+//                    Toast.makeText(context, "Call Failed!, Please turn on location", Toast.LENGTH_SHORT).show()
             } else if (level2Cancel_flag == 1) {
                 level2Cancel_flag = 0
                 binding.level2Bt.setImageResource(R.drawable.level2)
 
                 Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT).show()
             } else if (level2_flag == 1) {
-                stopCall(requireContext())
-                stopLocationService(requireContext())
+
+                val intent = Intent(context, CameraService::class.java)
+                context?.stopService(intent)
+//                stopCall(requireContext())
+//                stopLocationService(requireContext())
 
                 level2_flag = 0
                 binding.level2Bt.setImageResource(R.drawable.level2)
@@ -270,6 +313,29 @@ class SafetyFragment : Fragment() {
                 activity?.finish()
             }
         }
+
+    private val requestCameraPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+
+            } else {
+                Toast.makeText(context, "Permission not granted", Toast.LENGTH_SHORT).show()
+            }
+        }
+    val ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 101
+    fun checkStartPermissionRequest(): Boolean {
+        if (!Settings.canDrawOverlays(context)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + context?.packageName)
+            )
+            startActivityForResult(intent, ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE)
+            return false // above will start new Activity with proper app setting
+        }
+        return true // on lower OS versions granted during apk installation
+    }
 
 
     private fun loadCloselist() {
@@ -320,7 +386,8 @@ class SafetyFragment : Fragment() {
                     val userItem = item as HelplistItem
                     val intent = Intent(view.context, LocationActivity::class.java)
                     intent.putExtra("user", userItem.data.first)
-                    intent.putExtra("callid", current_call?.id)
+                    intent.putExtra("call_id", userItem.data.second.id)
+                    intent.putExtra("is_friend", true)
                     startActivity(intent)
                 }
             }
@@ -374,11 +441,12 @@ class SafetyFragment : Fragment() {
                     getUnknownCalls(user, it.first)
                 }
             }
-        helplistAdapter.setOnItemClickListener{ item, view ->
-            val userItem = item as HelplistItem
+        unkownhelplistAdapter.setOnItemClickListener{ item, view ->
+            val userItem = item as UnknownHelplistItem
             val intent = Intent(view.context, LocationActivity::class.java)
-            intent.putExtra("user", userItem.data.first)
-            intent.putExtra("callid", current_call?.id)
+            intent.putExtra("user", userItem.data.second.first)
+            intent.putExtra("call_id", userItem.data.first.id)
+            intent.putExtra("is_friend", userItem.data.second.second)
             startActivity(intent)
         }
     }
@@ -391,13 +459,20 @@ class SafetyFragment : Fragment() {
     }
 
     private fun getUnknownCalls(user: User, callid : String) {
-        val latest_query = FirebaseDatabase.getInstance().reference.child("/emergency-calls/${user.userid}/$callid")
+        val latest_query = FirebaseDatabase.getInstance().reference.child("/emergency-calls/${user.userid}/")
 
         latest_query.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
                 p0.getValue(Call::class.java)?.let {
-                    if(it.status == "going") {
-                        latestUnknownCallsMap[it.id!!] = Pair(user, it)
+                    if(it.status == "going" && it.id == callid) {
+                        FirebaseDatabase.getInstance()
+                            .getReference("friends/${FirebaseSession.userID}/${user.userid}/")
+                            .get().addOnSuccessListener { child ->
+                                if(child.exists())
+                                    latestUnknownCallsMap[it.id!!] = Pair(it , Pair(user, true))
+                                else
+                                    latestUnknownCallsMap[it.id!!] = Pair(it , Pair(user, false))
+                            }
                         refreshRecyclerUnkownHelplist()
                         binding.emptyunknownhelpText.visibility = View.GONE
                     }
@@ -407,7 +482,7 @@ class SafetyFragment : Fragment() {
 
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
                 p0.getValue(Call::class.java)?.let {
-                    if (it.status == "stopped") {
+                    if (it.status == "stopped" && it.id == callid)  {
                         latestUnknownCallsMap.remove(it.id!!)
                         refreshRecyclerUnkownHelplist()
                         binding.emptyunknownhelpText.visibility = View.GONE
@@ -427,7 +502,7 @@ class SafetyFragment : Fragment() {
         var result : UserLocation? = null
         if (ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             fusedLocationProviderClient.lastLocation.addOnSuccessListener{ location ->
-                val geocoder = Geocoder(context)
+                val geocoder = Geocoder(activity?.baseContext)
                 try {
                     if(location != null) {
                         myLocation = location

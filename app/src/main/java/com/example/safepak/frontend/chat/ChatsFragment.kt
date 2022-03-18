@@ -25,7 +25,7 @@ import java.util.*
 class ChatsFragment : Fragment() {
 
     lateinit var db: FirebaseFirestore
-    private val latestMessagesMap = HashMap<String, Pair<Message, Pair<User, Boolean>>>()
+    private val latestMessagesMap = HashMap<String, ChatlistItem>()
     private var adapter = GroupAdapter<GroupieViewHolder>()
 
     lateinit var binding: FragmentChatsBinding
@@ -55,6 +55,7 @@ class ChatsFragment : Fragment() {
         }
 
         binding.refreshchatsSwipe.setOnRefreshListener {
+            binding.emptychatsText.visibility = View.VISIBLE
             loadUsers()
         }
     }
@@ -63,11 +64,10 @@ class ChatsFragment : Fragment() {
         val USER_KEY = "USER_KEY"
     }
 
-    private fun refreshRecyclerViewMessages(flag : Boolean) {
+    private fun refreshRecyclerViewMessages() {
         adapter.clear()
         latestMessagesMap.values.forEach {
-            val chat = ChatlistItem(it.first, it.second.first, it.second.second, flag)
-            adapter.add(chat)
+            adapter.add(it)
         }
     }
 
@@ -96,11 +96,11 @@ class ChatsFragment : Fragment() {
                             .get().addOnSuccessListener { friend ->
                                 if (friend.children.count() > 0) {
                                     latestMessagesMap[it.key.toString()] =
-                                        Pair(message, Pair(user, true))
+                                        ChatlistItem(message, user, flag = true, animate = true)
                                 } else
                                     latestMessagesMap[it.key.toString()] =
-                                        Pair(message, Pair(user, false))
-                                refreshRecyclerViewMessages(true)
+                                        ChatlistItem(message, user, flag = false, animate = true)
+                                refreshRecyclerViewMessages()
                                 binding.emptychatsText.visibility = View.GONE
                             }
                     }
@@ -129,11 +129,11 @@ class ChatsFragment : Fragment() {
                             .get().addOnSuccessListener { friend ->
                                 if (friend.children.count() > 0) {
                                     latestMessagesMap[it.key.toString()] =
-                                        Pair(message, Pair(user, true))
+                                        ChatlistItem(message, user, flag = true, animate = false)
                                 } else
                                     latestMessagesMap[it.key.toString()] =
-                                        Pair(message, Pair(user, false))
-                                refreshRecyclerViewMessages(false)
+                                        ChatlistItem(message, user, flag = false, animate = false)
+                                refreshRecyclerViewMessages()
                             }
                     }
                 }
@@ -145,7 +145,7 @@ class ChatsFragment : Fragment() {
                 p0.children.forEach {
                     val message = it.getValue(Message::class.java)
                     latestMessagesMap.remove(it.key.toString())
-                    refreshRecyclerViewMessages(true)
+                    refreshRecyclerViewMessages()
                     binding.emptychatsText.visibility = View.GONE
                 }
             }

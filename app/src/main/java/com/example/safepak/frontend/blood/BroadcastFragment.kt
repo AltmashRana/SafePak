@@ -175,7 +175,8 @@ class BroadcastFragment : Fragment() {
                         if(checkInside(circle_radius, start, end)){
                             FirebaseSession.sendNotification(
                                 PushNotification(
-                                    NotificationData(FirebaseSession.userID!!, callid,"medical","Need ${blood} blood.", "Medical Emergency", blood),user.registrationTokens.last())
+                                    NotificationData(FirebaseSession.userID!!, callid,
+                                        false,"medical","Need ${blood} blood.", "Medical Emergency", blood),user.registrationTokens.last())
                             )
                         }
                     }

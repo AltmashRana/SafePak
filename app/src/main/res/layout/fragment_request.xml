@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:fontFamily="@font/bold_text"
-            android:text="Blood"
+            android:text="Select a Blood Group"
             android:textColor="@color/medium_black"
             android:textSize="12sp"
             app:layout_constraintBottom_toBottomOf="@+id/imageView20"

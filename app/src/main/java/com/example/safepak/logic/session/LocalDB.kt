@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteException
+import android.widget.Toast
 import com.example.safepak.logic.models.Call
 import com.google.firebase.database.FirebaseDatabase
 
@@ -77,7 +78,7 @@ object LocalDB {
                 return call
             }
         } catch (e : NullPointerException){
-            db.execSQL("DELETE FROM $TABLE_CALLS")
+            deleteEmergency(context)
             stopCall(user, id)
 
         }
@@ -121,7 +122,9 @@ object LocalDB {
 
         val responses = ArrayList<Pair<String, String>>()
         try {
+
             cursor = db.rawQuery(selectQuery, null)
+
         } catch (e: SQLiteException) {
             return null
         }
@@ -132,8 +135,8 @@ object LocalDB {
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    callid = cursor.getString(cursor.getColumnIndex(KEY_ID))
-                    userid = cursor.getString(cursor.getColumnIndex(KEY_USERID))
+                    callid = cursor.getString(cursor.getColumnIndex(KEY_CALLID))
+                    userid = cursor.getString(cursor.getColumnIndex(KEY_STRANGERID))
 
                     responses.add(Pair(callid, userid))
 
@@ -159,5 +162,14 @@ object LocalDB {
         val query = FirebaseDatabase.getInstance()
             .getReference("/emergency-calls/${userid}/")
         query.child(callid).updateChildren(mapOf("status" to "stopped"))
+    }
+
+    private fun stopAllCalls(userid : String){
+        val query = FirebaseDatabase.getInstance().getReference("/emergency-calls/")
+        query.get().addOnSuccessListener { docs ->
+            docs.children.forEach{ call ->
+                call
+            }
+        }
     }
 }

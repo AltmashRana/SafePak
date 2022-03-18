@@ -1,5 +1,6 @@
 package com.example.safepak.frontend.home
 
+import OnSwipeListener
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -45,6 +46,10 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.ktx.Firebase
 import android.view.animation.AnimationUtils
+import com.example.safepak.frontend.other.FacesActivity
+import com.example.safepak.frontend.other.VideosActivity
+import java.io.File
+import java.lang.Exception
 
 
 class HomeActivity : AppCompatActivity() {
@@ -93,7 +98,7 @@ class HomeActivity : AppCompatActivity() {
         binding.bottomNavigation.selectedItemId = R.id.safety_menu
 
         binding.bottomNavigation.setOnItemSelectedListener {
-            when(it.itemId){
+            when (it.itemId) {
                 R.id.chat_menu -> {
                     loadFragment(chatsFragment)
                 }
@@ -110,38 +115,11 @@ class HomeActivity : AppCompatActivity() {
             return@setOnItemSelectedListener true
         }
 
-        binding.homeDp.setOnClickListener{
+        binding.homeDp.setOnClickListener {
             val intent = Intent(this@HomeActivity, ProfileActivity::class.java)
             startActivity(intent)
         }
 
-
-//        binding.homeFrame.setOnTouchListener(object : OnSwipeListener(view.context)
-//        {
-//            override fun onSwipeTop() {
-//                Toast.makeText(view.context, "top", Toast.LENGTH_SHORT).show();
-//            }
-//            override fun onSwipeRight() {
-//
-//            // todo function to change fragments something like
-//            getSupportFragmentManager().beginTransaction()
-//                .setCustomAnimations(
-//                    R.anim.nav_default_enter_anim,  // enter
-//                    R.anim.slide_out // exit
-//                )
-//                .replace(R.id.fragmentContainer,
-//                    selectedFragment).commit();
-//
-//                Toast.makeText(view.context, "right", Toast.LENGTH_SHORT).show();
-//            }
-//            override fun onSwipeLeft() {
-//                Toast.makeText(view.context, "left", Toast.LENGTH_SHORT).show();
-//            }
-//            override fun onSwipeBottom() {
-//                Toast.makeText(view.context, "bottom", Toast.LENGTH_SHORT).show();
-//            }
-//
-//        })
     }
 
     private fun loadFragment(fragment: Fragment) {
@@ -162,31 +140,89 @@ class HomeActivity : AppCompatActivity() {
 
         when(item.itemId){
             R.id.faces_menu -> {
-                Toast.makeText(this, "Saved Faces", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this@HomeActivity, FacesActivity::class.java)
+                startActivity(intent)
             }
             R.id.videos_menu -> {
-                Toast.makeText(this, "Videos", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this@HomeActivity, VideosActivity::class.java)
+                startActivity(intent)
             }
             R.id.logout_menu -> {
+                logout()
                 Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
-                auth = Firebase.auth
-                FirebaseDatabase.getInstance().goOffline()
-                auth.signOut()
-                FirebaseDatabase.getInstance().goOnline()
-                val intent = Intent(this@HomeActivity, LoginActivity::class.java)
-                startActivity(intent)
-                finish()
             }
             R.id.about_menu -> {
                 Toast.makeText(this, "About", Toast.LENGTH_SHORT).show()
             }
             R.id.settings_menu -> {
-                Toast.makeText(this, "Settings", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this@HomeActivity, SettingsActivity::class.java)
                 startActivity(intent)
             }
         }
         return super.onOptionsItemSelected(item)
     }
+
+    fun logout(){
+        auth = Firebase.auth
+        auth.signOut()
+        deleteCache(applicationContext)
+        val intent = Intent(this@HomeActivity, LoginActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    fun deleteCache(context: Context) {
+        try {
+            val dir: File = context.cacheDir
+            deleteDir(dir)
+        } catch (e: Exception) {
+        }
+    }
+
+    fun deleteDir(dir: File?): Boolean {
+        return if (dir != null && dir.isDirectory()) {
+            val children: Array<String> = dir.list()
+            for (i in children.indices) {
+                val success = deleteDir(File(dir, children[i]))
+                if (!success) {
+                    return false
+                }
+            }
+            dir.delete()
+        } else if (dir != null && dir.isFile()) {
+            dir.delete()
+        } else {
+            false
+        }
+    }
+
+
+//      binding.homeFrame.setOnTouchListener(object : OnSwipeListener(view.context)
+//        {
+//            override fun onSwipeTop() {
+//                Toast.makeText(view.context, "top", Toast.LENGTH_SHORT).show();
+//            }
+//            override fun onSwipeRight() {
+//
+//            // todo function to change fragments something like
+////            getSupportFragmentManager().beginTransaction()
+////                .setCustomAnimations(
+////                    R.anim.nav_default_enter_anim,  // enter
+////                    R.anim.slide_out // exit
+////                )
+////                .replace(R.id.fragmentContainer,
+////                    selectedFragment).commit();
+//
+//                Toast.makeText(view.context, "right", Toast.LENGTH_SHORT).show();
+//            }
+//            override fun onSwipeLeft() {
+//                Toast.makeText(view.context, "left", Toast.LENGTH_SHORT).show();
+//            }
+//            override fun onSwipeBottom() {
+//                Toast.makeText(view.context, "bottom", Toast.LENGTH_SHORT).show();
+//            }
+//
+//        })
+//    }
 
 }

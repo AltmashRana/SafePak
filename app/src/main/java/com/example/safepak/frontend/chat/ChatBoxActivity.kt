@@ -69,7 +69,7 @@ class ChatBoxActivity : AppCompatActivity() {
 
         binding.sendtextBt.setOnClickListener {
             if (binding.chatboxBox.text.toString().isNotBlank()) {
-                FirebaseSession.sendText(user, binding.chatboxBox.text.toString())
+                FirebaseSession.sendText(user, friend_flag, binding.chatboxBox.text.toString())
                 binding.chatboxRecyclerView.scrollToPosition(adapter.itemCount - 1)
                 binding.chatboxBox.text.clear()
             }
@@ -289,15 +289,27 @@ class ChatBoxActivity : AppCompatActivity() {
             .child(user.userid!!)
             .removeValue()
 
-        FirebaseDatabase.getInstance()
-            .getReference("latest-messages/${user.userid}/${FirebaseSession.userID!!}")
-            .child("${user.userid}${FirebaseSession.userID!!}")
-            .updateChildren(mapOf("text" to ""))
+        if (friend_flag) {
+            FirebaseDatabase.getInstance()
+                .getReference("latest-messages/${user.userid}/${FirebaseSession.userID!!}")
+                .child("${user.userid}${FirebaseSession.userID!!}")
+                .updateChildren(mapOf("text" to ""))
 
-        FirebaseDatabase.getInstance()
-            .getReference("latest-messages/${FirebaseSession.userID}/${user.userid}")
-            .child("${FirebaseSession.userID!!}${user.userid}")
-            .updateChildren(mapOf("text" to ""))
+            FirebaseDatabase.getInstance()
+                .getReference("latest-messages/${FirebaseSession.userID}/${user.userid}")
+                .child("${FirebaseSession.userID!!}${user.userid}")
+                .updateChildren(mapOf("text" to ""))
+        } else {
+            FirebaseDatabase.getInstance()
+                .getReference("latest-messages/${user.userid}/${FirebaseSession.userID!!}")
+                .child("${user.userid}${FirebaseSession.userID!!}")
+                .removeValue()
+
+            FirebaseDatabase.getInstance()
+                .getReference("latest-messages/${FirebaseSession.userID}/${user.userid}")
+                .child("${FirebaseSession.userID!!}${user.userid}")
+                .removeValue()
+        }
     }
 
     fun addRemoveClose() {

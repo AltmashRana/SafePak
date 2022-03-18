@@ -95,6 +95,9 @@ dependencies {
     //GEO fence
     implementation 'com.google.maps.android:android-maps-utils:0.4+'
 
+    // FaceDetection
+    implementation 'com.google.mlkit:face-detection:16.1.5'
+
     kotlin {
         experimental {
             coroutines "enable"

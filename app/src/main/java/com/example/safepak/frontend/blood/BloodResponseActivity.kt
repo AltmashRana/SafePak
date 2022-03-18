@@ -18,6 +18,8 @@ import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import android.graphics.drawable.ColorDrawable
+import com.example.safepak.frontend.home.HomeActivity
+import com.google.firebase.database.FirebaseDatabase
 
 
 class BloodResponseActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -46,7 +48,7 @@ class BloodResponseActivity : AppCompatActivity(), OnMapReadyCallback {
         supportActionBar?.setDisplayShowHomeEnabled(true)
 
 
-        binding.bloodaddressText.text = location.address
+        binding.bloodaddressText.text = location.address?.substringBeforeLast(',')
 
         binding.bloodgroupText.text = "$blood Blood Required"
 
@@ -55,12 +57,22 @@ class BloodResponseActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment?.getMapAsync(this)
 
         binding.bloodresponseBt.setOnClickListener {
-            FirebaseSession.sendText(user, "\uD83E\uDE78Hi, ${user.firstname}. I think i can arrange $blood blood\uD83E\uDE78")
-            Toast.makeText(this, "Responded", Toast.LENGTH_SHORT).show()
-            finish()
+            FirebaseDatabase.getInstance()
+                .getReference("/friends/${FirebaseSession.userID}/${user.userid}/")
+                .get().addOnSuccessListener { doc ->
+                    var flag = false
+                    if (doc.children.count() > 0)
+                        flag = true
+                    FirebaseSession.sendText(user, flag, "\uD83E\uDE78Hi, ${user.firstname}. I think i can arrange $blood blood\uD83E\uDE78")
+                    Toast.makeText(this, "Responded", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@BloodResponseActivity, HomeActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    startActivity(intent)
+                }
         }
 
         binding.bloodcancelBt.setOnClickListener {
+
             finish()
         }
     }

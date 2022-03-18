@@ -12,7 +12,6 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="-24dp"
         app:layout_constraintBottom_toTopOf="@+id/constraintLayout4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -49,7 +48,7 @@
 
 
         <Button
-            android:id="@+id/bloodcancel_bt"
+            android:id="@+id/leve2cancel_bt"
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_marginStart="16dp"
@@ -83,10 +82,10 @@
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/help_text" />
+            app:layout_constraintTop_toBottomOf="@+id/level2help_text" />
 
         <TextView
-            android:id="@+id/help_text"
+            android:id="@+id/level2help_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -94,7 +93,7 @@
             android:layout_marginEnd="16dp"
             android:text="Someone is in Danger"
             android:textAlignment="center"
-            android:textColor="@color/text_color_grey"
+            android:textColor="@color/app_red"
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

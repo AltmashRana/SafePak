@@ -104,7 +104,7 @@ object FirebaseSession {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun sendText(user : User, text : String) {
+    fun sendText(user : User, isfriend : Boolean, text : String) {
 
         FirebaseSession.getCurrentUser { current ->
             val fromId = current.userid
@@ -157,9 +157,10 @@ object FirebaseSession {
                         NotificationData(
                             fromId,
                             "",
+                            isfriend,
                             "chat",
-                            "${current.firstname}: $text",
-                            "Message"
+                            text,
+                            current.firstname!!
                         ), user.registrationTokens.last()
                     )
                 )

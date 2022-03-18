@@ -22,6 +22,7 @@ import android.net.Uri
 import android.media.AudioAttributes
 import com.example.safepak.frontend.blood.BloodResponseActivity
 import com.example.safepak.frontend.home.HomeActivity
+import com.example.safepak.frontend.safety.Level2ResponseActivity
 import com.example.safepak.logic.models.UserLocation
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -58,7 +59,8 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                                 sendChatNotification(
                                     user!!,
                                     message.data["body"]!!,
-                                    message.data["title"]!!
+                                    message.data["title"]!!,
+                                    message.data["isfriend"].toBoolean()
                                 )
                             }
                         }
@@ -67,7 +69,8 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                         sendNotificationLevel1(
                             user!!,
                             message.data["body"]!!,
-                            message.data["title"]!!
+                            message.data["title"]!!,
+                            message.data["callid"]!!
                         )
                     }
 
@@ -76,7 +79,9 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                             user!!,
                             message.data["body"]!!,
                             message.data["title"]!!,
-                            message.data["callid"]!!
+                            message.data["callid"]!!,
+                            message.data["isclose"].toBoolean(),
+                            message.data["isfriend"].toBoolean()
                         )
                     }
 
@@ -126,7 +131,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         ref.addListenerForSingleValueEvent(listener)
     }
 
-    fun sendChatNotification(user : User, body : String, title : String){
+    fun sendChatNotification(user : User, body : String, title : String, isfriend : Boolean){
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -139,8 +144,8 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             notificationManager.createNotificationChannel(notificationChannel)
 
             intent = Intent(this, HomeActivity::class.java)
-//            intent.putExtra("USER_KEY", user)
-//            intent.putExtra("IS_FRIEND", true)
+            intent.putExtra("USER_KEY", user)
+            intent.putExtra("IS_FRIEND", isfriend)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ONE_SHOT)
 
@@ -166,7 +171,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     }
 
 
-    fun sendNotificationLevel1(user : User, body : String, title : String){
+    fun sendNotificationLevel1(user : User, body : String, title : String, callid: String){
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -186,6 +191,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
 
             intent = Intent(this, LocationActivity::class.java)
             intent.putExtra("user", user)
+            intent.putExtra("call_id", callid)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ONE_SHOT)
 
@@ -254,7 +260,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         notificationManager.notify(5678, builder.build())
     }
 
-    fun sendNotificationLevel2(user : User, body : String, title : String, callid : String){
+    fun sendNotificationLevel2(user : User, body : String, title : String, callid : String, isclose : Boolean, isfriend : Boolean){
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -272,10 +278,19 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                         + applicationContext.packageName + "/" + R.raw.level2), attributes)
             notificationManager.createNotificationChannel(notificationChannel)
 
-            intent = Intent(this, LocationActivity::class.java)
-            intent.putExtra("user", user)
-            intent.putExtra("call_id", callid)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            if (isclose) {
+                intent = Intent(this, LocationActivity::class.java)
+                intent.putExtra("user", user)
+                intent.putExtra("is_friend", true)
+                intent.putExtra("call_id", callid)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            } else{
+                intent = Intent(this, Level2ResponseActivity::class.java)
+                intent.putExtra("user", user)
+                intent.putExtra("is_friend", isfriend)
+                intent.putExtra("call_id", callid)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            }
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ONE_SHOT)
 
 

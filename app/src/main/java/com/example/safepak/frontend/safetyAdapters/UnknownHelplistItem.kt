@@ -10,7 +10,7 @@ import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Item
 import kotlinx.android.synthetic.main.help_item.view.*
 
-class UnknownHelplistItem(var data: Pair<User, Call>): Item<GroupieViewHolder>() {
+class UnknownHelplistItem(var data: Pair<Call, Pair<User, Boolean>>): Item<GroupieViewHolder>() {
     override fun getLayout(): Int {
         return R.layout.unknownhelp_item
     }
@@ -18,7 +18,6 @@ class UnknownHelplistItem(var data: Pair<User, Call>): Item<GroupieViewHolder>()
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
 
         val animation = AnimationUtils.loadAnimation(viewHolder.itemView.context, R.anim.righttoleft)
-
         viewHolder.itemView.startAnimation(animation)
     }
 }

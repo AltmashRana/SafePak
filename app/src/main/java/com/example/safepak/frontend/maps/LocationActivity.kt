@@ -3,8 +3,10 @@ package com.example.safepak.frontend.maps
 import android.content.Context
 import android.content.Intent
 import android.location.LocationManager
+import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.core.location.LocationManagerCompat
 import androidx.fragment.app.Fragment
@@ -13,6 +15,7 @@ import com.example.safepak.databinding.ActivityLocationBinding
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.safepak.data.User
 import com.example.safepak.frontend.chat.ChatBoxActivity
+import com.example.safepak.frontend.home.HomeActivity
 import com.example.safepak.logic.models.Call
 import com.example.safepak.logic.models.UserLocation
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -48,19 +51,24 @@ class LocationActivity : AppCompatActivity() {
 
         val bundle = Bundle()
         val user = intent.extras?.get("user") as User
-        val callid = intent.extras?.get("call_id").toString()
+        val callid = intent.getStringExtra("call_id")
+        val isfriend = intent.getBooleanExtra("is_friend", false)
         bundle.putParcelable("user", user)
+        bundle.putBoolean("is_friend", isfriend)
         val fragInfo = MapsFragment()
         fragInfo.arguments = bundle
 
-        checkIsFriend(user)
+        if (!isfriend) {
+            binding.locationchatBt.visibility = View.GONE
+            binding.locationchatBt.text = "Chat with ${user.firstname}"
+        }
 
-        checkCallStatus(callid, user.userid!!)
+        checkCallStatus(callid!!, user.userid!!)
 
         binding.locationchatBt.setOnClickListener{
             val intent = Intent(this@LocationActivity, ChatBoxActivity::class.java)
             intent.putExtra("USER_KEY", user)
-            intent.putExtra("IS_FRIEND", true)
+            intent.putExtra("IS_FRIEND", isfriend)
             startActivity(intent)
             finish()
         }
@@ -76,15 +84,15 @@ class LocationActivity : AppCompatActivity() {
         loadFragment(fragInfo)
     }
 
-    private fun checkIsFriend(user: User) {
-        FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}/${user.userid}")
-            .get().addOnSuccessListener { doc ->
-                if (doc.exists()){
-                 binding.locationchatBt.isEnabled = true
-                 binding.locationchatBt.text = user.firstname
-                }
-            }
-    }
+//    private fun checkIsFriend(user: User) {
+//        FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}/${user.userid}")
+//            .get().addOnSuccessListener { doc ->
+//                if (doc.exists()){
+//                 binding.locationchatBt.isEnabled = true
+//                 binding.locationchatBt.text = user.firstname
+//                }
+//            }
+//    }
 
     private fun checkCallStatus(callid : String, userid : String){
         FirebaseDatabase.getInstance().getReference("/emergency-calls/$userid/$callid")
@@ -94,11 +102,11 @@ class LocationActivity : AppCompatActivity() {
             override fun onCancelled(p0: DatabaseError) {}
 
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
-                val call = p0.getValue(Call::class.java)
-                if (call?.status == "stopped"){
-                    Toast.makeText(this@LocationActivity, "Session Ended!", Toast.LENGTH_SHORT).show()
-                    finishActivity(directionsActivityCode)
-                    finish()
+                if (p0.value == "stopped"){
+                    Toast.makeText(this@LocationActivity, "Session Expired!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@LocationActivity, HomeActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    startActivity(intent)
                 }
             }
             override fun onChildMoved(p0: DataSnapshot, p1: String?) {}

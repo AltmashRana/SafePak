@@ -50,8 +50,8 @@ class StatusFragment : Fragment() {
         }
 
         binding.refreshstatusSwipe.setOnRefreshListener {
+            binding.emptystatusText.visibility = View.VISIBLE
             loadStatuses()
-
             Toast.makeText(context, "Timeline refreshed", Toast.LENGTH_SHORT).show()
         }
 

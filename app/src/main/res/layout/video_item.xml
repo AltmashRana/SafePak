@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/chatlist_bg">
+
+    <ImageView
+        android:id="@+id/video_image"
+        android:layout_width="110dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play_ic" />
+
+    <TextView
+        android:id="@+id/videotime_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"
+        android:fontFamily="@font/normal_text"
+        android:text="Time"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/video_image"
+        app:layout_constraintEnd_toStartOf="@+id/videoextract_bt"
+        app:layout_constraintStart_toEndOf="@+id/video_image"
+        app:layout_constraintTop_toTopOf="@+id/video_image" />
+
+    <Button
+        android:id="@+id/videoextract_bt"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@color/app_blue"
+        android:elevation="6dp"
+        android:fontFamily="@font/normal_text"
+        android:text="AI"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="10sp"
+        app:cornerRadius="100dp"
+        app:layout_constraintBottom_toBottomOf="@+id/videotime_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/videotime_text" />
+
+    <TextView
+        android:id="@+id/videotitle_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/calibrib"
+        android:text="Title"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/videotime_text"
+        app:layout_constraintTop_toTopOf="@+id/video_image" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

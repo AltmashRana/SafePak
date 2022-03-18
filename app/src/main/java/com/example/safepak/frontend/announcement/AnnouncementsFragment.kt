@@ -71,6 +71,7 @@ class AnnouncementsFragment : Fragment() {
     }
 
     private fun loadAnnouncements() {
+        announcementAdapter.clear()
         val ref = FirebaseDatabase.getInstance().getReference("/emergency-calls")
 
         val listener = object : ValueEventListener {

@@ -8,7 +8,7 @@ class DBHandler(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, nul
 
     companion object {
         private const val DATABASE_VERSION = 1
-        private const val DATABASE_NAME = "safepak"
+        private const val DATABASE_NAME = "SafePak-DB"
         private const val TABLE_CALLS = "Call"
         private const val TABLE_RESPONSES = "Response"
 

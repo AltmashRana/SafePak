@@ -112,7 +112,6 @@ class GestureService : Service() {
                         downTime = -9L
 
                         if (gesture_count == 2) {
-                            vibratePhone()
                             if (isLocationEnabled(this@GestureService)) {
                                 if (ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.ACCESS_FINE_LOCATION)
                                     == PackageManager.PERMISSION_GRANTED
@@ -148,8 +147,8 @@ class GestureService : Service() {
                                 vibratePhone()
                             } else if (level2Cancel_flag) {
                                 level2Cancel_flag = false
-                            }
-
+                            } else
+                                gesture_count = 0
                         }
                     }
                 }

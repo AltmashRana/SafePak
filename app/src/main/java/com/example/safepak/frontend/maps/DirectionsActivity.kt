@@ -97,6 +97,7 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
+        startLocationUpdates()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             googleMap.isMyLocationEnabled = true
@@ -120,7 +121,7 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
                     marker?.remove()
                     marker = googleMap.addMarker(place2!!)
 
-                    binding.directionsAddress.text = location.address
+                    binding.directionsAddress.text = location.address?.substringBeforeLast(',')
 
                     drawCircle(place2!!.position, mMap, 0x200000ff)
                 }
@@ -201,7 +202,6 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
             //we have permission from user
             fusedLocationProviderClient?.lastLocation?.addOnSuccessListener{ location ->
                 start = LatLng(location.latitude, location.longitude)
-                startLocationUpdates()
                 // Obtain the SupportMapFragment and get notified when the map is ready to be used.
                 val mapFragment = supportFragmentManager
                     .findFragmentById(R.id.blood_map) as SupportMapFragment

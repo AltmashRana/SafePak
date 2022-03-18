@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.safepak">
+    package="com.example.safepak" >
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
@@ -16,22 +16,30 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:name=".frontend.home.SafePak"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SafePak">
+        android:theme="@style/Theme.SafePak" >
         <activity
-            android:name=".frontend.safety.Level2ResponseActivity"
+            android:name=".frontend.other.FacesActivity"
             android:exported="true" />
 
         <receiver
             android:name=".frontend.gesture.EmergencyWidget"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -73,7 +81,7 @@
         <service
             android:name=".frontend.services.FirebaseMessagingService"
             android:exported="false"
-            android:permission="com.google.android.c2dm.permission.SEND">
+            android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
@@ -81,7 +89,7 @@
         </service>
         <service
             android:name=".frontend.services.FirebaseInstanceService"
-            android:exported="false">
+            android:exported="false" >
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
@@ -96,11 +104,33 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+        <service
+            android:name=".frontend.services.CameraService"
+            android:enabled="true"
+            android:exported="true" />
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-6026808248085271~4087503996" />
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files.Safepak"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <activity
+            android:name=".frontend.other.VideosActivity"
+            android:exported="true"
+            android:label="Incident Captures"
+            android:theme="@style/Theme.SafePakAppbar" />
+        <activity
+            android:name=".frontend.safety.Level2ResponseActivity"
+            android:exported="true" />
         <activity
             android:name=".frontend.blood.BloodResponseActivity"
             android:exported="true"
@@ -160,7 +190,7 @@
             android:exported="true" />
         <activity
             android:name=".frontend.login.SplashActivity"
-            android:exported="true">
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

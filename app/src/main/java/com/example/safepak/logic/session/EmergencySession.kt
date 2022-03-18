@@ -42,18 +42,18 @@ import java.time.format.FormatStyle
 
 object EmergencySession {
 
-    private lateinit var myLocation : Location
-    private var current_call : Call? = null
+    private lateinit var myLocation: Location
+    private var current_call: Call? = null
     private var people_found = 0
 
-    fun getCurrentCall(context : Context) : Call? {
+    fun getCurrentCall(context: Context): Call? {
         current_call = LocalDB.getEmergency(context)
         return current_call
     }
 
 
     fun initiateLevel1(context: Context?, location: UserLocation) {
-        generateCall("level1",context, location)
+        generateCall("level1", context, location)
 
         FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}")
             .get().addOnSuccessListener { friend ->
@@ -64,37 +64,62 @@ object EmergencySession {
                             .document(friendship.friendid!!)
                         get_user.get().addOnSuccessListener { doc ->
                             val user = doc.toObject(User::class.java)!!
-                            sendNotification(PushNotification(NotificationData(
-                                FirebaseSession.userID!!,
-                                current_call?.id!!,
-                                "level1",
-                                "${user.firstname} here is my location","Level-1 Alert"),
-                                user.registrationTokens.last()))
-                            sendText(user, "Hey ${user.firstname}!\nI am feeling a little unsafe so that's why i called for level-1 alert.\nRight now i'm at ${location.address}.\nI am sharing my location in case something inconvenient happens.\nThanks")
+                            sendNotification(
+                                PushNotification(
+                                    NotificationData(
+                                        FirebaseSession.userID!!,
+                                        current_call?.id!!,
+                                        true,
+                                        "level1",
+                                        "${user.firstname} here is my location", "Level-1 Alert"
+                                    ),
+                                    user.registrationTokens.last()
+                                )
+                            )
+                            sendText(
+                                user,
+                                true,
+                                "Hey ${user.firstname}!\nI am feeling a little unsafe so that's why i called for level-1 alert.\nRight now i'm at ${location.address}.\nI am sharing my location in case something inconvenient happens.\nThanks"
+                            )
                         }
                     }
                 }
             }
     }
+
     fun initiateLevel2(context: Context?, location: UserLocation) {
-        generateCall("level2",context, location)
+        generateCall("level2", context, location)
 
         FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}")
             .get().addOnSuccessListener { friend ->
-                friend.children.forEach {
+                friend.children.forEach{
                     val friendship = it.getValue(Friendship::class.java)
                     if (friendship?.status == "close") {
-                        val get_user = FirebaseFirestore.getInstance().collection("users")
-                            .document(friendship.friendid!!)
-                            get_user.get().addOnSuccessListener { doc ->
-                            val user = doc.toObject(User::class.java)!!
-                            sendNotification(PushNotification(NotificationData(FirebaseSession.userID!!,
-                                current_call?.id!!,
-                                "level2",
-                                "Emergency!!! Please Help ${user.firstname}", "Level-2 Alert"),
-                                user.registrationTokens.last()))
-                                sendText(user, "PLEASE HELP ${user.firstname}!\nIt's an emergency call so that's why i called for level-2 alert.\nRight now i'm at ${location.address}.\nI am sharing my location live location.\nThanks")
-                        }
+                        FirebaseFirestore.getInstance().collection("users").document(it.key!!)
+                            .get().addOnSuccessListener { doc ->
+                                if (doc.exists()) {
+                                    val user = doc.toObject(User::class.java)!!
+                                    sendNotification(
+                                        PushNotification(
+                                            NotificationData(
+                                                FirebaseSession.userID!!,
+                                                current_call?.id!!,
+                                                true,
+                                                "level2",
+                                                "Emergency!!! Please Help ${user.firstname}",
+                                                "Level-2 Alert",
+                                                isclose = true
+                                            ),
+                                            user.registrationTokens.last()
+                                        )
+                                    )
+                                    sendText(
+                                        user,
+                                        true,
+                                        "Please Help ${user.firstname}!\nIt's an emergency call so that's why this call is generated.\nRight now i'm at ${location.address}.\nI am sharing my location.\nThanks"
+                                    )
+                                }
+                            }
                     }
                 }
             }
@@ -102,13 +127,13 @@ object EmergencySession {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val switch = prefs?.getBoolean("level2_switch", false)
         val value = prefs.getInt("level2_radius",5)
-        val radius_values = arrayOf<Double>(2.0, 4.0, value.toDouble())
+        val radius_values = arrayOf(2.0, 4.0, value.toDouble())
 
         if (switch == true) {
             for (i in radius_values) {
-                val center = LatLng(location.latitude!!.toDouble(), location.longitude!!.toDouble())
-                searchUserInRadius(center,i)
-            }
+                    val center = LatLng(location.latitude!!.toDouble(), location.longitude!!.toDouble())
+                    searchUserInRadius(center, i)
+                }
         }
     }
 
@@ -129,24 +154,52 @@ object EmergencySession {
 
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 for(snapshot: DataSnapshot in dataSnapshot.children) {
-                    val location = snapshot.getValue(UserLocation::class.java)
-                    if (location != null) {
-                        val start = LatLng(circle_center.latitude.toDouble(), circle_center.longitude.toDouble())
-                        val end = LatLng(location.latitude!!.toDouble(), location.longitude!!.toDouble())
-                        if(checkInside(circle_radius, start, end)){
-                            FirebaseFirestore.getInstance().collection("users").document(snapshot.key!!)
-                                .get().addOnSuccessListener { doc ->
-                                    if (doc.exists()) {
-                                        val user = doc.toObject(User::class.java)
-                                        sendNotification(PushNotification(NotificationData(
-                                            FirebaseSession.userID!!,
-                                            current_call?.id!!,
-                                            "level2",
-                                            "Emergency!!! Please Help this person",
-                                            "Level-2 Alert"
-                                        ), user?.registrationTokens!!.last()))
+                    for (child : DataSnapshot in snapshot.children){
+
+                        val location = child.getValue(UserLocation::class.java)
+
+                        if (location != null && child.key != FirebaseSession.userID) {
+
+                            val start = LatLng(circle_center.latitude, circle_center.longitude)
+                            val end = LatLng(location.latitude!!.toDouble(), location.longitude!!.toDouble())
+
+                            if(checkInside(circle_radius, start, end)) {
+                                FirebaseFirestore.getInstance().collection("users")
+                                    .document(snapshot.key!!).get().addOnSuccessListener { doc ->
+                                        if (doc.exists()) {
+                                            val user = doc.toObject(User::class.java)
+                                            FirebaseDatabase.getInstance()
+                                                .getReference("/friends/${FirebaseSession.userID}/${user!!.userid}/")
+                                                .get().addOnSuccessListener { child ->
+                                                    var isfriend = false
+                                                    var isclose = false
+                                                    if (child.exists()) {
+                                                        isfriend = true
+                                                        val friend = child.getValue(Friendship::class.java)
+                                                        if (friend?.status == "close")
+                                                            isclose = true
+                                                    }
+                                                    if (!isclose) {
+                                                        sendNotification(
+                                                            PushNotification(
+                                                                NotificationData(
+                                                                    FirebaseSession.userID!!,
+                                                                    current_call?.id!!,
+                                                                    isfriend,
+                                                                    "level2",
+                                                                    "Emergency! Please Help This Person",
+                                                                    "Level-2 Alert",
+                                                                    isclose = false
+                                                                ),
+                                                                user.registrationTokens.last()
+                                                            )
+                                                        )
+                                                        people_found++
+                                                    }
+                                                }
+                                        }
                                     }
-                                }
+                            }
                         }
                     }
                 }
@@ -205,7 +258,7 @@ object EmergencySession {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun getDatetime(): String {
+    fun getDatetime(): String {
         val current = LocalDateTime.now()
         val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
         val formatted = current.format(formatter)
@@ -234,4 +287,5 @@ object EmergencySession {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             LocationServices.getFusedLocationProviderClient(context).requestLocationUpdates(mLocationRequest, mLocationCallback, handlerThread.looper)
     }
+
 }
