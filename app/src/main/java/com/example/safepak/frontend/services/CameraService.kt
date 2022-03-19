@@ -10,6 +10,7 @@ import android.view.SurfaceHolder
 import android.media.MediaRecorder
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.hardware.Camera
 import android.media.CamcorderProfile
@@ -75,7 +76,10 @@ class CameraService : Service(), SurfaceHolder.Callback {
                 .setSmallIcon(R.drawable.logo_ic)
                 .setContentTitle("Camera Service")
         }
-        startForeground(4321, builder.build())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+            startForeground(4321, builder.build(),ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA)
+        else
+            startForeground(4321, builder.build())
     }
 
     var isFrontFacing = true
@@ -161,14 +165,15 @@ class CameraService : Service(), SurfaceHolder.Callback {
         }
     }
 
-    // Stop recording and remove SurfaceView
     override fun onDestroy() {
+        super.onDestroy()
         mediaRecorder!!.stop()
         mediaRecorder!!.reset()
         mediaRecorder!!.release()
         camera!!.lock()
         camera!!.release()
         windowManager!!.removeView(surfaceView)
+        stopSelf()
     }
 
 
@@ -180,7 +185,9 @@ class CameraService : Service(), SurfaceHolder.Callback {
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val extras = intent.extras
-
+        val action = intent.action
+        if (action == "stop")
+            onDestroy()
 //      you can pass using intent,that which camera you want to use front/rear
         isFrontFacing = extras!!.getBoolean("Front_Request")
         return super.onStartCommand(intent, flags, startId)

@@ -116,33 +116,47 @@ class GestureService : Service() {
                                 if (ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.ACCESS_FINE_LOCATION)
                                     == PackageManager.PERMISSION_GRANTED
                                 ) {
-                                    requestLocation(this@GestureService)
-                                    updateGPS { result ->
-                                        vibratePhone()
-                                        startLocationService(this@GestureService)
-                                        level2Cancel_flag = true
-                                        if (result != null) {
-                                            Thread {
-                                                Thread.sleep(5000)
-                                                Runnable {
-                                                    if (level2Cancel_flag) {
-                                                        EmergencySession.initiateLevel2(this@GestureService, result)
-                                                        level2Cancel_flag = false
-                                                        level2_flag = true
-                                                        level2_player.start()
-                                                    }
-                                                }.run()
-                                            }.start()
+//                                    requestLocation(this@GestureService)
+//                                    updateGPS { result ->
+//                                        vibratePhone()
+//                                        startLocationService(this@GestureService)
+//                                        level2Cancel_flag = true
+//                                        if (result != null) {
+//                                            Thread {
+//                                                Thread.sleep(5000)
+//                                                Runnable {
+//                                                    if (level2Cancel_flag) {
+//                                                        EmergencySession.initiateLevel2(this@GestureService, result)
+
+                                    if (ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                                        && ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+                                        && ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+//                                      && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
+                                    )   {
+                                            val cam_intent = Intent(this@GestureService, CameraService::class.java)
+                                            cam_intent.putExtra("Front_Request", true)
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                                                startForegroundService(cam_intent)
+
                                         }
-                                    }
+                                        level2Cancel_flag = false
+                                        level2_flag = true
+                                        level2_player.start()
+//                                                    }
+//                                                }.run()
+//                                            }.start()
+//                                        }
+//                                    }
                                 }
                             }
                         } else if (gesture_count == 3) {
                             if (level2_flag) {
                                 gesture_count = 0
                                 level2_flag = false
-                                EmergencySession.stopCall(this@GestureService)
-                                EmergencySession.stopLocationService(this@GestureService)
+                                val cam_intent = Intent(this@GestureService, CameraService::class.java)
+                                stopService(cam_intent)
+//                                EmergencySession.stopCall(this@GestureService)
+//                                EmergencySession.stopLocationService(this@GestureService)
                                 stopped_player.start()
                                 vibratePhone()
                             } else if (level2Cancel_flag) {

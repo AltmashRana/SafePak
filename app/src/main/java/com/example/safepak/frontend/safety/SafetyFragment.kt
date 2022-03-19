@@ -55,9 +55,8 @@ import com.example.safepak.logic.session.EmergencySession.updateUserLocationInFi
 import com.example.safepak.logic.session.LocalDB
 import com.google.firebase.database.*
 import androidx.core.app.ActivityCompat.startActivityForResult
-
-
-
+import androidx.preference.PreferenceManager
+import com.example.safepak.logic.session.EmergencySession.isCameraServiceRunning
 
 
 class SafetyFragment : Fragment() {
@@ -222,77 +221,89 @@ class SafetyFragment : Fragment() {
         }
 
         binding.level2Bt.setOnClickListener {
+            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+            val switch = prefs?.getBoolean("level2_cam", false)
+
             if (level1_flag == 0 && level1Cancel_flag == 0 && level2_flag == 0 && level2Cancel_flag == 0 ) {
-//                if (EmergencySession.isLocationEnabled(view.context)) {
-//
-//                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION)
-//                        == PackageManager.PERMISSION_GRANTED) {
-//                        requestLocation(requireContext())
-//                            updateGPS{ result ->
-//                                if (result != null) {
-//                                    level2_bt.setImageResource(R.drawable.cancel_ic)
-//                                    level2Cancel_flag = 1
-//                                    Toast.makeText(context, "Level-2 call will be initiated in 3 secs", Toast.LENGTH_SHORT).show()
-//                                    Thread {
-//                                        Thread.sleep(3000)
-//                                        activity?.runOnUiThread {
-//                                            Runnable {
-//                                                if (level2Cancel_flag == 1) {
-//                                                    binding.level2Bt.isEnabled = false
-//                                                    YoYo.with(Techniques.Tada)
-//                                                        .duration(400)
-//                                                        .repeat(1)
-//                                                        .playOn(binding.level2Bt)
-//
-//                                                    EmergencySession.startLocationService(context)
-//                                                    initiateLevel2(requireContext(), result)
-                if (ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                    && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-                    && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-//                    && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
-                )
-                {
-                    binding.level2Bt.setImageResource(R.drawable.cancel_ic)
-                    val intent = Intent(context, CameraService::class.java)
-                    intent.putExtra("Front_Request", true)
-                    context?.startForegroundService(intent)
-                    level2Cancel_flag = 0
-                    level2_flag = 1
-                    Toast.makeText(context, "Level-2 emergency initiated!", Toast.LENGTH_SHORT)
-                        .show()
-                    binding.level2Bt.isEnabled = true
-                }else {
-                    requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                    requestCameraPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    requestCameraPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    requestCameraPermissionLauncher.launch(Manifest.permission.SYSTEM_ALERT_WINDOW)
-                    checkStartPermissionRequest()
-                }
-//                                                }
-//                                            }.run()
-//                                        }
-//                                    }.start()
-//                                }
-//                            }
-//                    }
-//                    else{
-//                        requestPermissionLauncher.launch(
-//                            Manifest.permission.ACCESS_FINE_LOCATION)
-//                    }
-//                } else
-//                    Toast.makeText(context, "Call Failed!, Please turn on location", Toast.LENGTH_SHORT).show()
+                if (EmergencySession.isLocationEnabled(view.context)) {
+                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                        requestLocation(requireContext())
+                            updateGPS{ result ->
+                                if (result != null) {
+                                    level2_bt.setImageResource(R.drawable.cancel_ic)
+                                    level2Cancel_flag = 1
+                                    Toast.makeText(context, "Level-2 call will be initiated in 3 secs", Toast.LENGTH_SHORT).show()
+                                    Thread {
+                                        Thread.sleep(3000)
+                                            Runnable {
+                                                if (level2Cancel_flag == 1) {
+                                                    activity?.runOnUiThread {
+                                                        binding.level2Bt.isEnabled = false
+                                                        YoYo.with(Techniques.Tada)
+                                                            .duration(400)
+                                                            .repeat(1)
+                                                            .playOn(binding.level2Bt)
+                                                        binding.level2Bt.setImageResource(R.drawable.cancel_ic)
+                                                        level2Cancel_flag = 0
+                                                        level2_flag = 1
+                                                        Toast.makeText(context, "Level-2 emergency initiated!", Toast.LENGTH_SHORT).show()
+                                                        binding.level2Bt.isEnabled = true
+
+                                                    EmergencySession.startLocationService(context)
+                                                    initiateLevel2(requireContext(), result)
+
+                                                    if (ContextCompat.checkSelfPermission(
+                                                            requireView().context,
+                                                            Manifest.permission.CAMERA
+                                                        ) == PackageManager.PERMISSION_GRANTED
+                                                        && ContextCompat.checkSelfPermission(
+                                                            requireView().context,
+                                                            Manifest.permission.RECORD_AUDIO
+                                                        ) == PackageManager.PERMISSION_GRANTED
+                                                        && ContextCompat.checkSelfPermission(
+                                                            requireView().context,
+                                                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                                                        ) == PackageManager.PERMISSION_GRANTED
+                                                    //                    && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
+                                                    ) {
+                                                        if(switch == true){
+                                                            val intent = Intent(context, CameraService::class.java)
+                                                            intent.putExtra("Front_Request", true)
+                                                            context?.startForegroundService(intent)
+                                                        }
+                                                    } else {
+                                                        requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                                        requestCameraPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                                        requestCameraPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                                        requestCameraPermissionLauncher.launch(Manifest.permission.SYSTEM_ALERT_WINDOW)
+                                                        checkStartPermissionRequest()
+                                                    }
+                                                }
+                                            }
+                                            }.run()
+                                    }.start()
+                                }
+                            }
+                    }
+                    else{
+                        requestPermissionLauncher.launch(
+                            Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                } else
+                    Toast.makeText(context, "Call Failed!, Please turn on location", Toast.LENGTH_SHORT).show()
             } else if (level2Cancel_flag == 1) {
                 level2Cancel_flag = 0
                 binding.level2Bt.setImageResource(R.drawable.level2)
 
                 Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT).show()
             } else if (level2_flag == 1) {
-
-                val intent = Intent(context, CameraService::class.java)
-                context?.stopService(intent)
-//                stopCall(requireContext())
-//                stopLocationService(requireContext())
-
+                stopCall(requireContext())
+                stopLocationService(requireContext())
+                if (requireContext().isCameraServiceRunning(CameraService::class.java)){
+                    val intent = Intent(context, CameraService::class.java)
+                    context?.stopService(intent)
+                }
                 level2_flag = 0
                 binding.level2Bt.setImageResource(R.drawable.level2)
 

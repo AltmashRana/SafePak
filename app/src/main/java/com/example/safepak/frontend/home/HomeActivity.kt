@@ -3,15 +3,16 @@ package com.example.safepak.frontend.home
 import OnSwipeListener
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.net.Uri
+import android.os.*
+import android.provider.MediaStore
 import android.view.Menu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -140,8 +141,7 @@ class HomeActivity : AppCompatActivity() {
 
         when(item.itemId){
             R.id.faces_menu -> {
-                val intent = Intent(this@HomeActivity, FacesActivity::class.java)
-                startActivity(intent)
+              openImagesFolder()
             }
             R.id.videos_menu -> {
                 val intent = Intent(this@HomeActivity, VideosActivity::class.java)
@@ -160,6 +160,29 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun openImagesFolder() {
+        val intent = Intent(Intent.ACTION_VIEW)
+        if (Build.VERSION.SDK_INT>= Build.VERSION_CODES.Q) {
+            val resolver = contentResolver
+            val contentValues = ContentValues()
+            contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            contentValues.put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + File.separator + "Safepak"+ File.separator)
+            val imageuri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            intent.setDataAndType(imageuri, "image/*")
+        } else {
+            val selectedUri =
+                Uri.parse(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).absolutePath + File.separator + "Safepak" + File.separator)
+            intent.setDataAndType(selectedUri, "image/jpeg")
+        }
+        if (intent.resolveActivityInfo(packageManager, 0) != null) {
+            startActivity(intent)
+        } else {
+            Toast.makeText(this, "No File Explorer Found!", Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun logout(){

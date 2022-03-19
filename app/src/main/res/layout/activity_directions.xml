@@ -29,11 +29,11 @@
         android:id="@+id/address_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/navigation_bg"
+        android:padding="12dp"
         map:layout_constraintBottom_toBottomOf="@+id/blood_map"
         map:layout_constraintEnd_toEndOf="parent"
-        map:layout_constraintStart_toStartOf="parent"
-        android:padding="8dp"
-        android:background="@drawable/navigation_bg">
+        map:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/directions_address"

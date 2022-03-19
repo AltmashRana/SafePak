@@ -95,6 +95,9 @@ dependencies {
     //GEO fence
     implementation 'com.google.maps.android:android-maps-utils:0.4+'
 
+    // Google Places
+    implementation 'com.google.android.libraries.places:places:2.5.0'
+
     // FaceDetection
     implementation 'com.google.mlkit:face-detection:16.1.5'
 

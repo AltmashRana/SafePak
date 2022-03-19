@@ -17,6 +17,7 @@
     <PreferenceCategory app:title="@string/level2_header">
 
         <SwitchPreferenceCompat
+            android:key="level2_cam"
             app:key="sync"
             app:title="@string/video_settings"
             app:summary="Record spy video on level-2 call"/>

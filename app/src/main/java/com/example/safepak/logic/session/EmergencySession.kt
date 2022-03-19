@@ -7,7 +7,6 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
@@ -18,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
 import androidx.preference.PreferenceManager
 import com.example.safepak.data.User
+import com.example.safepak.frontend.services.CameraService
 import com.example.safepak.frontend.services.LocationService
 import com.example.safepak.logic.models.Call
 import com.example.safepak.logic.models.Constants
@@ -32,9 +32,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 import com.google.maps.android.SphericalUtil
-import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -89,6 +87,7 @@ object EmergencySession {
 
     fun initiateLevel2(context: Context?, location: UserLocation) {
         generateCall("level2", context, location)
+
 
         FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}")
             .get().addOnSuccessListener { friend ->
@@ -226,14 +225,21 @@ object EmergencySession {
     }
 
     @Suppress("DEPRECATION")
-    fun Context.isMyServiceRunning(serviceClass: Class<LocationService>): Boolean {
+    fun Context.isEmergencyServiceRunning(serviceClass: Class<LocationService>): Boolean {
+        val manager = this.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        return manager.getRunningServices(Integer.MAX_VALUE)
+            .any { it.service.className == serviceClass.name }
+    }
+
+    @Suppress("DEPRECATION")
+    fun Context.isCameraServiceRunning(serviceClass: Class<CameraService>): Boolean {
         val manager = this.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         return manager.getRunningServices(Integer.MAX_VALUE)
             .any { it.service.className == serviceClass.name }
     }
 
     fun startLocationService(context: Context?) {
-        if (!context?.isMyServiceRunning(LocationService::class.java)!!) {
+        if (!context?.isEmergencyServiceRunning(LocationService::class.java)!!) {
             val intent = Intent(context, LocationService::class.java)
             intent.action = Constants.ACTION_START_LOCATION_SERVICE
             context.startService(intent)
@@ -242,7 +248,7 @@ object EmergencySession {
     }
 
     fun stopLocationService(context: Context?){
-        if(context?.isMyServiceRunning(LocationService::class.java)!!) {
+        if(context?.isEmergencyServiceRunning(LocationService::class.java)!!) {
             val intent = Intent(context, LocationService::class.java)
             intent.action = Constants.ACTION_STOP_LOCATION_SERVICE
             context.startService(intent)

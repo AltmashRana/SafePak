@@ -55,7 +55,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                 when (message.data["type"]) {
                     "chat" -> {
                         FirebaseSession.getCurrentUser { me ->
-                            if (me.status["state"] == "offline") {
+                            if (me.status["state"] == "offline" && message.data["isfriend"].toBoolean()) {
                                 sendChatNotification(
                                     user!!,
                                     message.data["body"]!!,
@@ -70,7 +70,8 @@ class FirebaseMessagingService : FirebaseMessagingService() {
                             user!!,
                             message.data["body"]!!,
                             message.data["title"]!!,
-                            message.data["callid"]!!
+                            message.data["callid"]!!,
+                            message.data["isfriend"].toBoolean()
                         )
                     }
 
@@ -171,7 +172,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     }
 
 
-    fun sendNotificationLevel1(user : User, body : String, title : String, callid: String){
+    fun sendNotificationLevel1(user : User, body : String, title : String, callid: String, isfriend : Boolean){
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -192,6 +193,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             intent = Intent(this, LocationActivity::class.java)
             intent.putExtra("user", user)
             intent.putExtra("call_id", callid)
+            intent.putExtra("is_friend", isfriend)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             val pendingIntent = PendingIntent.getActivity(this, 0, intent, FLAG_ONE_SHOT)
 
