@@ -1,10 +1,7 @@
 package com.example.safepak.frontend.services
 
 import android.Manifest
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -17,8 +14,10 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.media.VolumeProviderCompat
+import androidx.preference.PreferenceManager
 import com.daimajia.androidanimations.library.Techniques
 import com.daimajia.androidanimations.library.YoYo
 import com.example.safepak.R
@@ -99,74 +98,78 @@ class GestureService : Service() {
                     1 -> {
                         upTime = SystemClock.elapsedRealtime()
 //                        Toast.makeText(this@GestureService, "Up ${upTime}", Toast.LENGTH_SHORT).show()
+                        gesture_count++
                     }
                 }
+                val prefs = PreferenceManager.getDefaultSharedPreferences(this@GestureService)
+                val switch = prefs?.getBoolean("enable_cam", true)
 
-                if (direction != 0) {
-                    val gap = abs((upTime - downTime))
-
-                    if (gap < interval) {
-                        gesture_count++
+                if (direction == 1) {
+//                    val gap = abs((upTime - downTime))
+//
+//                    if (gap < interval) {
+//                        gesture_count++
 
                         upTime = 9999L
                         downTime = -9L
 
-                        if (gesture_count == 2) {
+                        if (gesture_count == 1) {
                             if (isLocationEnabled(this@GestureService)) {
                                 if (ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.ACCESS_FINE_LOCATION)
                                     == PackageManager.PERMISSION_GRANTED
                                 ) {
-//                                    requestLocation(this@GestureService)
-//                                    updateGPS { result ->
-//                                        vibratePhone()
-//                                        startLocationService(this@GestureService)
-//                                        level2Cancel_flag = true
-//                                        if (result != null) {
-//                                            Thread {
-//                                                Thread.sleep(5000)
-//                                                Runnable {
-//                                                    if (level2Cancel_flag) {
-//                                                        EmergencySession.initiateLevel2(this@GestureService, result)
+                                    requestLocation(this@GestureService)
+                                    updateGPS { result ->
+                                        vibratePhone()
+                                        startLocationService(this@GestureService, "level2")
+                                        level2Cancel_flag = true
+                                        if (result != null) {
+                                            Thread {
+                                                Thread.sleep(3000)
+                                                Runnable {
+                                                    if (level2Cancel_flag) {
+                                                        EmergencySession.initiateLevel2(this@GestureService, result)
 
                                     if (ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
                                         && ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
                                         && ContextCompat.checkSelfPermission(this@GestureService, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
 //                                      && ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
                                     )   {
-                                            val cam_intent = Intent(this@GestureService, CameraService::class.java)
-                                            cam_intent.putExtra("Front_Request", true)
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                                startForegroundService(cam_intent)
-
+                                            if(switch == true){
+                                                val cam_intent = Intent(this@GestureService, CameraService::class.java)
+                                                cam_intent.putExtra("Front_Request", true)
+                                                    startForegroundService(cam_intent)
+                                            }
                                         }
                                         level2Cancel_flag = false
                                         level2_flag = true
                                         level2_player.start()
-//                                                    }
-//                                                }.run()
-//                                            }.start()
-//                                        }
-//                                    }
+                                                    }
+                                                }.run()
+                                            }.start()
+                                        }
+                                    }
                                 }
                             }
-                        } else if (gesture_count == 3) {
+                        } else if (gesture_count == 2) {
                             if (level2_flag) {
                                 gesture_count = 0
                                 level2_flag = false
                                 val cam_intent = Intent(this@GestureService, CameraService::class.java)
                                 stopService(cam_intent)
-//                                EmergencySession.stopCall(this@GestureService)
-//                                EmergencySession.stopLocationService(this@GestureService)
+                                EmergencySession.stopCall(this@GestureService)
+                                EmergencySession.stopLocationService(this@GestureService)
                                 stopped_player.start()
                                 vibratePhone()
                             } else if (level2Cancel_flag) {
                                 level2Cancel_flag = false
                             } else
                                 gesture_count = 0
-                        }
+                        } else if(gesture_count > 2)
+                            gesture_count = 0
                     }
                 }
-            }
+//            }
         }
 
         mediaSession.setPlaybackToRemote(myVolumeProvider)
@@ -185,6 +188,7 @@ class GestureService : Service() {
             }
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()

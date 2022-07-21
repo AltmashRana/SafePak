@@ -3,7 +3,7 @@
     <PreferenceCategory app:title="@string/general_header">
 
         <SwitchPreferenceCompat
-            app:key="sync"
+            app:key="sim_location"
             app:title="@string/sim_settings"
             app:summary="Send current location through sim"/>
 
@@ -17,24 +17,42 @@
     <PreferenceCategory app:title="@string/level2_header">
 
         <SwitchPreferenceCompat
-            android:key="level2_cam"
-            app:key="sync"
-            app:title="@string/video_settings"
-            app:summary="Record spy video on level-2 call"/>
-
-        <SwitchPreferenceCompat app:title="@string/face_settings"
-            app:summary="Extract faces from video"/>
-        <SwitchPreferenceCompat
             app:key="level2_switch"
             app:title="@string/map_settings"
             app:summary="Look for nearby people in range for help"/>
         <SeekBarPreference
-            android:key="level2_radius"
+            app:key="level2_radius"
             app:showSeekBarValue="true"
+            android:title="Search Radius in kms"
             app:seekBarIncrement="2"
             android:max="20"
             app:min="5"
             app:defaultValue="5"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Video Settings">
+
+        <SwitchPreferenceCompat
+            app:key="enable_cam"
+            app:summary="Record spy video on level-2 call"
+            app:title="@string/video_settings" />
+        <SwitchPreferenceCompat
+            app:key="enable_AI"
+            app:summary="Extract faces from video"
+            app:title="@string/face_settings" />
+
+        <SwitchPreferenceCompat
+            app:key="video_cam"
+            app:summary="Less accurate than front camera"
+            app:title="Use Back Camera" />
+
+        <SeekBarPreference
+            android:key="video_length"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="2"
+            android:title="Video Length"
+            android:max="5"
+            app:min="1"
+            app:defaultValue="3"/>
     </PreferenceCategory>
 
 </PreferenceScreen>

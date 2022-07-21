@@ -111,13 +111,7 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
                     place2 = MarkerOptions().position(LatLng(end.latitude, end.longitude)).title(user.firstname).icon(
                         BitmapDescriptorFactory.fromResource(R.drawable.marker_ic))
 
-                    fetchURL(context).execute(
-                        getUrl(
-                            start,
-                            place2!!.position,
-                            "driving"
-                        ), "driving"
-                    )
+                    fetchURL(context).execute(getUrl(start, place2!!.position, "driving"), "driving")
                     marker?.remove()
                     marker = googleMap.addMarker(place2!!)
 
@@ -135,14 +129,7 @@ class DirectionsActivity : AppCompatActivity(), OnMapReadyCallback, TaskLoadedCa
                     place2 = MarkerOptions().position(LatLng(end.latitude, end.longitude)).title(user.firstname).icon(
                         BitmapDescriptorFactory.fromResource(R.drawable.marker_ic))
 
-                    fetchURL(context).execute(
-                        getUrl(
-                            start,
-                            place2!!.position,
-                            "driving"
-                        ), "driving"
-                    )
-
+                    fetchURL(context).execute(getUrl(start, place2!!.position, "driving"), "driving")
                     marker?.remove()
                     marker = googleMap.addMarker(place2!!)
 

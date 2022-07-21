@@ -20,6 +20,8 @@ import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.core.content.FileProvider
+import androidx.preference.PreferenceManager
 import com.example.safepak.R
 import java.io.File
 import java.lang.Exception
@@ -30,7 +32,16 @@ class CameraService : Service(), SurfaceHolder.Callback {
     private var surfaceView: SurfaceView? = null
     private var camera: Camera? = null
     private var mediaRecorder: MediaRecorder? = null
+    var isFrontFacing = true
+
+    lateinit var video : File
+
     override fun onCreate() {
+
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val switch = prefs?.getBoolean("video_cam", false)
+        if (switch == true)
+            isFrontFacing = false
 
         // Start foreground service to avoid unexpected kill
         notification()
@@ -82,7 +93,6 @@ class CameraService : Service(), SurfaceHolder.Callback {
             startForeground(4321, builder.build())
     }
 
-    var isFrontFacing = true
     private fun openFrontFacingCameraGingerbread(): Camera? {
         if (camera != null) {
             camera!!.stopPreview()
@@ -135,22 +145,23 @@ class CameraService : Service(), SurfaceHolder.Callback {
 
         camera = openFrontFacingCameraGingerbread()
         mediaRecorder = MediaRecorder()
+        mediaRecorder!!.reset()
         camera!!.unlock()
         mediaRecorder!!.setPreviewDisplay(surfaceHolder.surface)
         mediaRecorder!!.setCamera(camera)
-        mediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.CAMCORDER)
         mediaRecorder!!.setVideoSource(MediaRecorder.VideoSource.CAMERA)
+        mediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.CAMCORDER)
         mediaRecorder!!.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_480P))
 
         val imagesFolder = File(
             getExternalFilesDir(null), "Safepak"
         )
         if (!imagesFolder.exists()) imagesFolder.mkdirs() // <----
-        val image = File(
+        video = File(
             imagesFolder, System.currentTimeMillis()
                 .toString() + ".mp4"
         ) //file name + extension is .mp4
-        mediaRecorder!!.setOutputFile(image.absolutePath)
+        mediaRecorder!!.setOutputFile(video.absolutePath)
         try {
             mediaRecorder!!.prepare()
         } catch (e: Exception) {
@@ -167,12 +178,29 @@ class CameraService : Service(), SurfaceHolder.Callback {
 
     override fun onDestroy() {
         super.onDestroy()
+
         mediaRecorder!!.stop()
         mediaRecorder!!.reset()
         mediaRecorder!!.release()
         camera!!.lock()
         camera!!.release()
         windowManager!!.removeView(surfaceView)
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val switch = prefs?.getBoolean("enable_AI", true)
+        if (switch == true){
+            val fileWithinMyDir = video
+            fileWithinMyDir.setReadable(true, false)
+
+            val intent = Intent()
+            val intentUri = FileProvider.getUriForFile(
+                this, this.applicationContext
+                    .packageName.toString() + ".files.Safepak", video
+            )
+            intent.action = Intent.ACTION_VIEW
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            intent.setDataAndType(intentUri, "video/mp4")
+            startActivity(intent)
+        }
         stopSelf()
     }
 

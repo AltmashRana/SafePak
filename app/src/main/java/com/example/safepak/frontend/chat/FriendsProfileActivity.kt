@@ -80,60 +80,31 @@ class FriendsProfileActivity : AppCompatActivity() {
     }
 
     private fun setFriendshipStatus(user: User) {
-        val db = FirebaseFirestore.getInstance()
+        val db = FirebaseDatabase.getInstance()
 
-        val query1 = db.collection("requests")
-            .whereEqualTo("userid", FirebaseSession.userID)
-            .whereEqualTo("friendid", user.userid)
-            .whereIn("status", listOf("added", "close"))
-
-        val query2 = db.collection("requests")
-            .whereEqualTo("userid", user.userid)
-            .whereEqualTo("friendid", FirebaseSession.userID)
-            .whereIn("status", listOf("added", "close"))
-
-        Tasks.whenAllSuccess<Any>(
-            query1.get(),
-            query2.get()
-        )
-            .addOnSuccessListener { objects ->
-                for (obj in objects) {
-                    val queryDocumentSnapshots = obj as QuerySnapshot
-                    for (documentSnapshot in queryDocumentSnapshots) {
-                        val friendship = documentSnapshot.toObject(Friendship::class.java)
-                            binding.friendstatusText.text = friendship.status
-                        return@addOnSuccessListener
+        db.getReference("/friends/${FirebaseSession.userID}/${user.userid}")
+            .get().addOnSuccessListener { doc ->
+                if (doc.exists()){
+                    val friendship = doc.getValue(Friendship::class.java)
+                    if (friendship?.status == "close") {
+                        binding.friendstatusText.text = friendship.status
                     }
                 }
             }
     }
 
     private fun setFriendCallsCount(user: User) {
-        val db = FirebaseFirestore.getInstance()
         binding.friendhiscallsText.text = "Hidden"
 
-        val query1 = db.collection("requests")
-            .whereEqualTo("userid", FirebaseSession.userID)
-            .whereEqualTo("friendid", user.userid)
-            .whereIn("status", listOf("added", "close"))
+        val db = FirebaseDatabase.getInstance()
 
-        val query2 = db.collection("requests")
-            .whereEqualTo("userid", user.userid)
-            .whereEqualTo("friendid", FirebaseSession.userID)
-            .whereIn("status", listOf("added", "close"))
-
-        Tasks.whenAllSuccess<Any>(
-            query1.get(),
-            query2.get()
-        )
-            .addOnSuccessListener { objects ->
-                for (obj in objects) {
-                    val queryDocumentSnapshots = obj as QuerySnapshot
-                    for (documentSnapshot in queryDocumentSnapshots) {
-                        val friendship = documentSnapshot.toObject(Friendship::class.java)
-                        if (friendship.status == "close")
-                        {
-                            val ref = Firebase.database.getReference("emergency-calls")
+        db.getReference("/friends/${FirebaseSession.userID}/${user.userid}")
+            .get().addOnSuccessListener { doc ->
+                if (doc.exists()){
+                    val friendship = doc.getValue(Friendship::class.java)
+                    if (friendship?.status == "close") {
+                        binding.friendstatusText.text = friendship.status
+                           val ref = Firebase.database.getReference("emergency-calls")
 
                             val listener = object : ValueEventListener {
                                 override fun onCancelled(databaseError: DatabaseError) {
@@ -146,7 +117,6 @@ class FriendsProfileActivity : AppCompatActivity() {
                             ref.addListenerForSingleValueEvent(listener)
                         }
                         return@addOnSuccessListener
-                    }
                 }
             }
     }

@@ -16,17 +16,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.get
 import com.example.safepak.R
+import com.example.safepak.logic.session.StorageSession
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetectorOptions
-import java.io.File
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
 import kotlinx.android.synthetic.main.progress_dialogue.view.*
+import java.io.*
 import java.nio.ByteBuffer
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
 import java.lang.Exception
 import java.util.*
 import kotlin.collections.ArrayList
@@ -94,14 +92,32 @@ class FacesActivity : AppCompatActivity() {
 
         for(i in 0 until temp.size - 1) {
             if (compareEquivalance(temp[i], temp[i + 1]) < 0.5) {
-                result.add(temp[i]!!)
+                    temp[i]?.let { result.add(it) }
             }
         }
 
         Thread{
             Runnable {
-                for (i in result.indices)
+                for (i in result.indices) {
                     saveToInternalStorage(i.toString(), result[i])
+                    if (result.size > 25){
+                        if (i%3 == 3){
+                            val outputStream = ByteArrayOutputStream()
+                            result[i].compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+                            val selectedImageBytes = outputStream.toByteArray()
+                            try {
+                                StorageSession.uploadFacePhotos(selectedImageBytes, filename, i.toString()) {}
+                            } catch (e : Exception){}
+                        }
+                    } else {
+                        val outputStream = ByteArrayOutputStream()
+                        result[i].compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
+                        val selectedImageBytes = outputStream.toByteArray()
+                        try {
+                            StorageSession.uploadFacePhotos(selectedImageBytes, filename, i.toString()) {}
+                        } catch (e : Exception){}
+                    }
+                }
                 runOnUiThread {
                     setDialog(false)
                     if (result.size > 0)
@@ -147,15 +163,17 @@ class FacesActivity : AppCompatActivity() {
 
         val totalVideoTime = 1000 * Integer.valueOf(timeMs) // total video time, in uS
 
-        faces_map = arrayOfNulls((totalVideoTime/1000000) * 60 * 30 * 4)
-
+        if ((totalVideoTime/1000000) * 60 * 15 * 4 == 0)
+            faces_map = arrayOfNulls(1000)
+        else
+            faces_map = arrayOfNulls((totalVideoTime/1000000) * 60 * 15 * 4)
         runAI(totalVideoTime, mMMR, fps, 0)
         runAI(totalVideoTime, mMMR, fps, 90)
         runAI(totalVideoTime, mMMR, fps, 180)
         runAI(totalVideoTime, mMMR, fps, 270)
     }
 
-    private fun runAI(totalVideoTime : Int,mMMR : MediaMetadataRetriever, fps : Int, angle : Int) {
+    private fun runAI(totalVideoTime : Int, mMMR : MediaMetadataRetriever, fps : Int, angle : Int) {
         var time_us = 1
         var flag = false
         var bitmap: Bitmap
@@ -228,7 +246,7 @@ class FacesActivity : AppCompatActivity() {
                 Toast.makeText(this, "Image Not Saved", Toast.LENGTH_SHORT).show()
             }
         } else {
-            val directory = File(Environment.DIRECTORY_PICTURES, "Safepak/${filename.substringBefore('.')}")
+            val directory = File(getExternalFilesDir(null), "Safepak/${filename.substringBefore('.')}")
 
             if (!directory.exists()) directory.mkdirs()
 
@@ -236,10 +254,10 @@ class FacesActivity : AppCompatActivity() {
             var fos: FileOutputStream? = null
             try {
                 fos = FileOutputStream(mypath)
-
                 bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, fos)
             } catch (e: Exception) {
                 Toast.makeText(this, "Image Not Saved", Toast.LENGTH_SHORT).show()
+                finish()
             } finally {
                 try {
                     fos?.close()

@@ -37,7 +37,7 @@ import java.lang.Exception
 import java.lang.RuntimeException
 
 
-class LocationService : Service() , SurfaceHolder.Callback{
+class LocationService : Service(){
     lateinit var notificationManager: NotificationManager
     lateinit var notificationChannel: NotificationChannel
     lateinit var builder: Notification.Builder
@@ -73,11 +73,20 @@ class LocationService : Service() , SurfaceHolder.Callback{
                 val location = locationResult.lastLocation
                 val geocoder = Geocoder(this@LocationService)
                 try {
-                    val address = geocoder.getFromLocation(location.latitude, location.longitude, 1)[0].getAddressLine(0).toString()
+                    var address = "Missing"
+                    try {
+                        address = geocoder.getFromLocation(
+                            location.latitude,
+                            location.longitude,
+                            1
+                        )[0].getAddressLine(0).toString()
+                    }catch (e : IndexOutOfBoundsException) {
+                        Toast.makeText(this@LocationService, "Address Failed", Toast.LENGTH_SHORT).show()
+                    }
                     val result = UserLocation(locationResult.lastLocation.longitude.toString(), locationResult.lastLocation.latitude.toString(), address)
                     updateUserLocationInFirebase(result)
                     Toast.makeText(applicationContext, "Location updated", Toast.LENGTH_SHORT).show()
-                } catch (e : NullPointerException) {
+                } catch (e1 : NullPointerException) {
                     Toast.makeText(applicationContext, "Geo-Api Failed", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -90,14 +99,9 @@ class LocationService : Service() , SurfaceHolder.Callback{
             call_type = intent.extras?.getString("call_type").toString()
             if (action != null) {
                 if (action == Constants.ACTION_START_LOCATION_SERVICE) {
-                    if (call_type == "level2")
-                        isFrontFacing = intent.extras!!.getBoolean("front_cam")
-                        recordVideo()
                     startLocationUpdates()
                 } else if (action == Constants.ACTION_STOP_LOCATION_SERVICE) {
-                    if (call_type == "level2")
-                        stopRecording()
-                    stopLocationUpdates();
+                    stopLocationUpdates()
                 }
             }
         }
@@ -131,12 +135,12 @@ class LocationService : Service() , SurfaceHolder.Callback{
                     .setSmallIcon(R.drawable.logo_ic)
                     .setContentTitle("Emergency Service")
                     .setColorized(true)
-                        if (call_type == "level2"){
+                        if (call_type == "level1"){
                             builder
                                 .setColor(ContextCompat.getColor(this, R.color.app_blue))
                                 .setContentText("Level-1 Active (Sharing location)")
                                 .setLargeIcon(BitmapFactory.decodeResource(this.resources, R.drawable.level1))
-                        } else if (call_type == "level1"){
+                        } else if (call_type == "level2"){
                             builder
                                 .setColor(ContextCompat.getColor(this, R.color.app_red))
                                 .setContentText("Level2 Active (Location and Camera)")
@@ -146,7 +150,7 @@ class LocationService : Service() , SurfaceHolder.Callback{
                 builder = Notification.Builder(this)
                     .setSmallIcon(R.drawable.logo_ic)
                     .setContentTitle("Emergency Service")
-                    .setContentText("Sharing location (Level-1 Alert)")
+                    .setContentText("Sharing location")
             }
 
             startForeground(1122, builder.build())
@@ -160,134 +164,8 @@ class LocationService : Service() , SurfaceHolder.Callback{
         stopSelf()
     }
 
-    private var windowManager: WindowManager? = null
-    private var surfaceView: SurfaceView? = null
-    private var camera: Camera? = null
-    private var mediaRecorder: MediaRecorder? = null
-
-
-    private fun recordVideo() {
-        //Camera
-        windowManager = this.getSystemService(WINDOW_SERVICE) as WindowManager
-        surfaceView = SurfaceView(applicationContext)
-        val layout_parms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            WindowManager.LayoutParams.TYPE_PHONE
-        }
-        val layoutParams = WindowManager.LayoutParams(
-            1,
-            1,
-            layout_parms,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            PixelFormat.TRANSLUCENT
-        )
-        layoutParams.gravity = Gravity.LEFT or Gravity.TOP
-        windowManager!!.addView(surfaceView, layoutParams)
-        surfaceView!!.holder.addCallback(this)
-    }
-
-
-    var isFrontFacing = false
-    private fun openFrontFacingCameraGingerbread(): Camera? {
-        if (camera != null) {
-            camera!!.stopPreview()
-            camera!!.release()
-        }
-        var cam: Camera? = null
-        if (isFrontFacing && checkFrontCamera(this)) {
-            var cameraCount = 0
-            cam = null
-            val cameraInfo = Camera.CameraInfo()
-            cameraCount = Camera.getNumberOfCameras()
-            for (camIdx in 0 until cameraCount) {
-                Camera.getCameraInfo(camIdx, cameraInfo)
-                if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                    try {
-                        cam = Camera.open(camIdx)
-                    } catch (e: RuntimeException) {
-                        Log.e(
-                            "Camera",
-                            "Camera failed to open: " + e.localizedMessage
-                        )
-                    }
-                }
-            }
-        } else {
-            cam = Camera.open()
-        }
-        return cam
-    }
-
-//    private val pictureSize: Camera.Size? = null
-//    private fun getBiggesttPictureSize(parameters: Camera.Parameters): Camera.Size? {
-//        var result: Camera.Size? = null
-//        for (size in parameters.supportedVideoSizes) {
-//            if (result == null) {
-//                result = size
-//            } else {
-//                val resultArea = result.width * result.height
-//                val newArea = size.width * size.height
-//                if (newArea > resultArea) {
-//                    result = size
-//                }
-//            }
-//        }
-//        return result
-//    }
-
-    // Method called right after Surface created (initializing and starting MediaRecorder)
-    override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
-        camera = openFrontFacingCameraGingerbread()
-        mediaRecorder = MediaRecorder()
-        camera!!.unlock()
-        mediaRecorder!!.setPreviewDisplay(surfaceHolder.surface)
-        mediaRecorder!!.setCamera(camera)
-        mediaRecorder!!.setAudioSource(MediaRecorder.AudioSource.CAMCORDER)
-        mediaRecorder!!.setVideoSource(MediaRecorder.VideoSource.CAMERA)
-        mediaRecorder!!.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_480P))
-        val imagesFolder = File(
-            getExternalFilesDir(null), "Safepak"
-        )
-        if (!imagesFolder.exists()) imagesFolder.mkdirs() // <----
-        val image = File(
-            imagesFolder, "Incident-${getDatetime()}" + ".mp4"
-        ) //file name + extension is .mp4
-        mediaRecorder!!.setOutputFile(image.absolutePath)
-        try {
-            mediaRecorder!!.prepare()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this, "media Recorder Failed", Toast.LENGTH_SHORT).show()
-        }
-        try {
-            mediaRecorder!!.start()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this, "media Recorder Failed", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Stop recording and remove SurfaceView
-     private fun stopRecording() {
-        mediaRecorder!!.stop()
-        mediaRecorder!!.reset()
-        mediaRecorder!!.release()
-        camera!!.lock()
-        camera!!.release()
-        windowManager!!.removeView(surfaceView)
-    }
-
-    private fun checkFrontCamera(context: Context): Boolean {
-        return context.packageManager.hasSystemFeature(
-            PackageManager.FEATURE_CAMERA_FRONT
-        )
-    }
 
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
-    override fun surfaceChanged(surfaceHolder: SurfaceHolder, format: Int, width: Int, height: Int) {}
-
-    override fun surfaceDestroyed(surfaceHolder: SurfaceHolder) {}
 }

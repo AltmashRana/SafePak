@@ -33,20 +33,16 @@ import android.view.animation.LinearInterpolator
 
 import com.google.android.gms.maps.model.GroundOverlay
 import android.os.Handler
+import com.example.safepak.frontend.home.HomeActivity
 import com.example.safepak.logic.session.EmergencySession
 import com.example.safepak.logic.session.LocalDB
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 
 import com.google.android.gms.maps.model.GroundOverlayOptions
-
-
-
-
-
-
-
-
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 
 
 class Level2ResponseActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -72,6 +68,9 @@ class Level2ResponseActivity : AppCompatActivity(), OnMapReadyCallback {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
+
+
+        checkCallStatus(callid!!, user.userid!!)
 
         if (isfriend)
             binding.level2helpText.text = "${user.firstname} is in Danger"
@@ -115,6 +114,36 @@ class Level2ResponseActivity : AppCompatActivity(), OnMapReadyCallback {
         )
 //        drawCircle(position, mMap, 500.0, 0x20ff0000)
         animateCircle(1400f, position)
+    }
+
+
+    private fun checkCallStatus(callid : String, userid : String){
+        FirebaseDatabase.getInstance().getReference("/emergency-calls/$userid/$callid")
+            .addChildEventListener(object: ChildEventListener {
+                override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+                    if (p0.value == "stopped"){
+                        Toast.makeText(this@Level2ResponseActivity, "Session Expired!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this@Level2ResponseActivity, HomeActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        startActivity(intent)
+                    }
+                }
+
+                override fun onCancelled(p0: DatabaseError) {}
+
+                override fun onChildChanged(p0: DataSnapshot, p1: String?) {
+                    if (p0.value == "stopped"){
+                        Toast.makeText(this@Level2ResponseActivity, "Session Expired!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this@Level2ResponseActivity, HomeActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        startActivity(intent)
+                    }
+                }
+                override fun onChildMoved(p0: DataSnapshot, p1: String?) {}
+
+                override fun onChildRemoved(p0: DataSnapshot) {}
+
+            })
     }
 
     private fun updateGPS() {

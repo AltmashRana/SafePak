@@ -215,7 +215,6 @@ class AddFriendActivity : AppCompatActivity() {
         binding.requestsRecycler.adapter = requestAdapter
     }
 
-
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true

@@ -63,7 +63,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="These results are from 10km radius"
+            android:text="These results are from 8km radius"
             android:textAlignment="center" />
     </LinearLayout>
 

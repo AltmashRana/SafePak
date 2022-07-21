@@ -4,6 +4,7 @@ package com.example.safepak.frontend.safety
 
 import android.Manifest
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
@@ -72,6 +73,7 @@ class SafetyFragment : Fragment() {
     private val latestUnknownCallsMap = HashMap<String, Pair<Call, Pair<User, Boolean>>>()
 
     private lateinit var db: FirebaseFirestore
+    private lateinit var prefs : SharedPreferences
 
     private lateinit var currentuser: User
     private var level1_flag = 0
@@ -105,14 +107,6 @@ class SafetyFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        loadHelplist()
-        loadUnknownHelplist()
-    }
-
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         current_call = getCurrentCall(requireContext())
         if (current_call != null){
@@ -126,6 +120,17 @@ class SafetyFragment : Fragment() {
             }
         }
 
+        loadHelplist()
+        loadUnknownHelplist()
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        prefs = PreferenceManager.getDefaultSharedPreferences(context)
+
         close_recycler = binding.closeRecycler
         close_recycler.adapter = closelistAdapter
 
@@ -137,6 +142,7 @@ class SafetyFragment : Fragment() {
 
         loadCloselist()
 
+        requestLocation(requireContext())
         updateGPS{}
 
         binding.emptycloseText.visibility = View.VISIBLE
@@ -152,13 +158,18 @@ class SafetyFragment : Fragment() {
             loadCloselist()
             loadHelplist()
             loadUnknownHelplist()
+            requestLocation(requireContext())
+            updateGPS{
+                binding.refreshsafetySwipe.isRefreshing = false
+            }
         }
 
         binding.level1Bt.setOnClickListener {
             if (level1_flag == 0 && level1Cancel_flag == 0 && level2_flag == 0 && level2Cancel_flag == 0) {
                 if (EmergencySession.isLocationEnabled(view.context)) {
 
-                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(view.context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         requestLocation(requireContext())
                         updateGPS { result ->
                             if (result != null) {
@@ -179,7 +190,7 @@ class SafetyFragment : Fragment() {
                                                     .repeat(1)
                                                     .playOn(binding.level1Bt)
 
-                                                EmergencySession.startLocationService(context)
+                                                EmergencySession.startLocationService(context, "level1")
                                                 initiateLevel1(requireContext(), result)
                                                 level1Cancel_flag = 0
                                                 level1_flag = 1
@@ -195,6 +206,8 @@ class SafetyFragment : Fragment() {
                     else{
                         requestPermissionLauncher.launch(
                             Manifest.permission.ACCESS_FINE_LOCATION)
+                        requestPermissionLauncher.launch(
+                            Manifest.permission.SEND_SMS)
                     }
                 } else
                     Toast.makeText(context, "Call Failed!, Please turn on location", Toast.LENGTH_SHORT).show()
@@ -221,13 +234,13 @@ class SafetyFragment : Fragment() {
         }
 
         binding.level2Bt.setOnClickListener {
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            val switch = prefs?.getBoolean("level2_cam", false)
+
+            val switch = prefs.getBoolean("enable_cam", false)
 
             if (level1_flag == 0 && level1Cancel_flag == 0 && level2_flag == 0 && level2Cancel_flag == 0 ) {
                 if (EmergencySession.isLocationEnabled(view.context)) {
-                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION)
-                        == PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(view.context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        && ContextCompat.checkSelfPermission(view.context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
                         requestLocation(requireContext())
                             updateGPS{ result ->
                                 if (result != null) {
@@ -250,7 +263,7 @@ class SafetyFragment : Fragment() {
                                                         Toast.makeText(context, "Level-2 emergency initiated!", Toast.LENGTH_SHORT).show()
                                                         binding.level2Bt.isEnabled = true
 
-                                                    EmergencySession.startLocationService(context)
+                                                    EmergencySession.startLocationService(context, "level2")
                                                     initiateLevel2(requireContext(), result)
 
                                                     if (ContextCompat.checkSelfPermission(
@@ -289,6 +302,8 @@ class SafetyFragment : Fragment() {
                     else{
                         requestPermissionLauncher.launch(
                             Manifest.permission.ACCESS_FINE_LOCATION)
+                        requestPermissionLauncher.launch(
+                            Manifest.permission.SEND_SMS)
                     }
                 } else
                     Toast.makeText(context, "Call Failed!, Please turn on location", Toast.LENGTH_SHORT).show()
@@ -317,9 +332,8 @@ class SafetyFragment : Fragment() {
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                updateGPS {
-
-                }
+                requestLocation(requireContext())
+                updateGPS{}
             } else {
                 activity?.finish()
             }
@@ -513,7 +527,7 @@ class SafetyFragment : Fragment() {
         var result : UserLocation? = null
         if (ContextCompat.checkSelfPermission(requireView().context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
             fusedLocationProviderClient.lastLocation.addOnSuccessListener{ location ->
-                val geocoder = Geocoder(activity?.baseContext)
+                val geocoder = Geocoder(requireContext())
                 try {
                     if(location != null) {
                         myLocation = location

@@ -97,7 +97,14 @@ class LocationActivity : AppCompatActivity() {
     private fun checkCallStatus(callid : String, userid : String){
         FirebaseDatabase.getInstance().getReference("/emergency-calls/$userid/$callid")
         .addChildEventListener(object: ChildEventListener {
-            override fun onChildAdded(p0: DataSnapshot, p1: String?) {}
+            override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+                if (p0.value == "stopped"){
+                    Toast.makeText(this@LocationActivity, "Session Expired!", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@LocationActivity, HomeActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    startActivity(intent)
+                }
+            }
 
             override fun onCancelled(p0: DatabaseError) {}
 

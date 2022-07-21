@@ -4,6 +4,7 @@ import FirebaseSession.sendNotification
 import FirebaseSession.sendText
 import android.Manifest
 import android.app.ActivityManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -36,7 +37,7 @@ import com.google.maps.android.SphericalUtil
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-
+import android.telephony.SmsManager
 
 object EmergencySession {
 
@@ -52,6 +53,9 @@ object EmergencySession {
 
     fun initiateLevel1(context: Context?, location: UserLocation) {
         generateCall("level1", context, location)
+
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val send_sim = prefs?.getBoolean("sim_location", false)
 
         FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}")
             .get().addOnSuccessListener { friend ->
@@ -79,6 +83,10 @@ object EmergencySession {
                                 true,
                                 "Hey ${user.firstname}!\nI am feeling a little unsafe so that's why i called for level-1 alert.\nRight now i'm at ${location.address}.\nI am sharing my location in case something inconvenient happens.\nThanks"
                             )
+                            if (send_sim == true) {
+                                val url = "https://www.google.com/maps/search/?api=1&query=${location.latitude}%2C${location.longitude}"
+                                sendSMS(context, user.phone!!, "I'm at ${url}.\nThanks")
+                            }
                         }
                     }
                 }
@@ -87,7 +95,8 @@ object EmergencySession {
 
     fun initiateLevel2(context: Context?, location: UserLocation) {
         generateCall("level2", context, location)
-
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val send_sim = prefs?.getBoolean("sim_location", true)
 
         FirebaseDatabase.getInstance().getReference("/friends/${FirebaseSession.userID}")
             .get().addOnSuccessListener { friend ->
@@ -112,18 +121,18 @@ object EmergencySession {
                                             user.registrationTokens.last()
                                         )
                                     )
-                                    sendText(
-                                        user,
-                                        true,
-                                        "Please Help ${user.firstname}!\nIt's an emergency call so that's why this call is generated.\nRight now i'm at ${location.address}.\nI am sharing my location.\nThanks"
-                                    )
+                                    sendText(user, true, "Please Help ${user.firstname}!\nIt's an emergency call so that's why this call is generated.\nRight now i'm at ${location.address}.\nI am sharing my location.\nThanks")
+                                    if (send_sim == true) {
+                                        val url = "https://www.google.com/maps/search/?api=1&query=${location.latitude}%2C${location.longitude}"
+                                        sendSMS(context, user.phone!!, "Please Help ${user.firstname}!\nIt's an emergency call so that's why this call is generated.")
+                                        sendSMS(context, user.phone!!, "I'm at ${url}.\nHelp")
+                                    }
                                 }
                             }
                     }
                 }
             }
 
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val switch = prefs?.getBoolean("level2_switch", false)
         val value = prefs.getInt("level2_radius",5)
         val radius_values = arrayOf(2.0, 4.0, value.toDouble())
@@ -207,6 +216,10 @@ object EmergencySession {
         ref.addListenerForSingleValueEvent(listener)
     }
 
+    private fun sendSMS(context: Context?,phoneNumber: String, message: String) {
+        val sentPI: PendingIntent = PendingIntent.getBroadcast(context, 0, Intent("SMS_SENT"), 0)
+        SmsManager.getDefault().sendTextMessage(phoneNumber, null, message, sentPI, null)
+    }
 
     private fun generateCall(type : String, context: Context?, location: UserLocation) {
         val query = FirebaseDatabase.getInstance().getReference("/emergency-calls/${FirebaseSession.userID}/")
@@ -238,10 +251,11 @@ object EmergencySession {
             .any { it.service.className == serviceClass.name }
     }
 
-    fun startLocationService(context: Context?) {
+    fun startLocationService(context: Context?,type : String) {
         if (!context?.isEmergencyServiceRunning(LocationService::class.java)!!) {
             val intent = Intent(context, LocationService::class.java)
             intent.action = Constants.ACTION_START_LOCATION_SERVICE
+            intent.putExtra("call_type",type)
             context.startService(intent)
             Toast.makeText(context, "Location service started", Toast.LENGTH_SHORT).show()
         }

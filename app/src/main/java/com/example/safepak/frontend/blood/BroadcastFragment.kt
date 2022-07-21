@@ -176,7 +176,8 @@ class BroadcastFragment : Fragment() {
                             FirebaseSession.sendNotification(
                                 PushNotification(
                                     NotificationData(FirebaseSession.userID!!, callid,
-                                        false,"medical","Need ${blood} blood.", "Medical Emergency", blood),user.registrationTokens.last())
+                                        false,"medical","Need ${blood} blood.", "Medical Emergency", blood)
+                                    , user.registrationTokens.last())
                             )
                         }
                     }

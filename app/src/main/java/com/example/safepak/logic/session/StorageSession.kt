@@ -19,5 +19,13 @@ object StorageSession {
             }
     }
 
+    fun uploadFacePhotos(imageBytes: ByteArray, callid : String, filename : String, onSuccess: (imagePath: String) -> Unit) {
+        val ref = currentUserRef.child("faceExtracts/$callid/${filename}")
+        ref.putBytes(imageBytes)
+            .addOnSuccessListener {
+                onSuccess(ref.path)
+            }
+    }
+
     fun pathToReference(path: String) = storageInstance.getReference(path)
 }

@@ -101,6 +101,9 @@ dependencies {
     // FaceDetection
     implementation 'com.google.mlkit:face-detection:16.1.5'
 
+    // Camera2
+//    implementation 'com.wesleyelliott:camera2-video:0.0.2'
+
     kotlin {
         experimental {
             coroutines "enable"

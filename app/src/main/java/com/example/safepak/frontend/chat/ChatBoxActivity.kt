@@ -259,7 +259,7 @@ class ChatBoxActivity : AppCompatActivity() {
                             db.getReference("/friends/${user.userid}/${FirebaseSession.userID}")
                                 .removeValue().addOnSuccessListener {
 
-                                    deleteChats(user)
+//                                    deleteChats(user)
 
                                     Toast.makeText(this, "Friend Removed", Toast.LENGTH_SHORT).show()
 

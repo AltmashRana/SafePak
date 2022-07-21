@@ -74,8 +74,7 @@ class RedzoneActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        val autocompleteFragment =
-            supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment?
+        val autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment?
 
         autocompleteFragment!!.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
 
@@ -115,18 +114,20 @@ class RedzoneActivity : AppCompatActivity(), OnMapReadyCallback {
 
             @RequiresApi(Build.VERSION_CODES.O)
             override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val center = LatLng(mylocation.latitude!!.toDouble(), mylocation.longitude!!.toDouble())
+                val center = LatLng(mylocation.latitude, mylocation.longitude)
                 for (snapshot: DataSnapshot in dataSnapshot.children){
                     for (child: DataSnapshot in snapshot.children) {
                         child.getValue(Call::class.java)?.let {
-                            if (it.location != null) {
-                                val call_loc = LatLng(it.location?.latitude!!.toDouble(), it.location?.longitude!!.toDouble())
+                            if (it.type == "level2"){
+                                if (it.location != null) {
+                                    val call_loc = LatLng(it.location?.latitude!!.toDouble(), it.location?.longitude!!.toDouble())
 
-                                val calltime = it.time!!.split(',')[0].split('/')
-                                val time = EmergencySession.getDatetime().split(',')[0].split('/')
-                                if (EmergencySession.checkInside(10.0, center, call_loc)) {
-                                    if(time[0] == calltime[0] && time[2] == calltime[2])
-                                        count++
+                                    val calltime = it.time!!.split(',')[0].split('/')
+                                    val time = EmergencySession.getDatetime().split(',')[0].split('/')
+                                    if (EmergencySession.checkInside(8.0, center, call_loc)) {
+                                        if(time[0] == calltime[0] && time[2] == calltime[2])
+                                            count++
+                                    }
                                 }
                             }
                         }

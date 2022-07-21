@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/altma/Desktop/FAST Projects/SafePak FYP/Project/app/src/main/res/xml/root_preferences.xml" value="0.12350427350427351" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/announcement_bg.xml" value="0.11752136752136752" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/drawable/appbar_bg.xml" value="0.11752136752136752" />
@@ -60,7 +61,7 @@
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_location.xml" value="0.4" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_login.xml" value="0.2" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_profile.xml" value="0.3286004056795132" />
-        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_redzone.xml" value="0.4" />
+        <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_redzone.xml" value="0.264" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_register.xml" value="0.2" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_splash.xml" value="0.1935897435897436" />
         <entry key="..\:/Users/altma/Desktop/SafePak FYP/Project/app/src/main/res/layout/activity_verify.xml" value="0.264" />
